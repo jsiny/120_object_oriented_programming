@@ -45,6 +45,10 @@ end
 class RPSGame
   attr_accessor :human, :computer
 
+  WINS_OVER = { 'rock'      => 'scissors',
+                'scissors'  => 'paper',
+                'paper'     => 'rock' }
+
   def initialize
     @human = Player.new
     @computer = Player.new(:computer)
@@ -55,6 +59,7 @@ class RPSGame
     loop do
       human.choose
       computer.choose
+      display_choices
       display_winner
       break unless play_again?
     end
@@ -69,23 +74,18 @@ class RPSGame
     puts "Thanks for playing Rock, Paper, Scissors. Good bye!"
   end
 
-  def display_winner
+  def display_choices
     puts "#{human.name} chose #{human.move}."
     puts "#{computer.name} chose #{computer.move}."
+  end
 
-    case human.move
-    when 'rock'
-      puts "It's a tie"             if computer.move == 'rock'
-      puts "#{human.name} won!"     if computer.move == 'scissors'
-      puts "#{computer.name} won!"  if computer.move == 'paper'
-    when 'paper'
-      puts "It's a tie"             if computer.move == 'paper'
-      puts "#{human.name} won!"     if computer.move == 'rock'
-      puts "#{computer.name} won!"  if computer.move == 'scissors'
-    when 'scissors'
-      puts "It's a tie"             if computer.move == 'scissors'
-      puts "#{human.name} won!"     if computer.move == 'paper'
-      puts "#{computer.name} won!"  if computer.move == 'rock'
+  def display_winner
+    if human.move == computer.move
+      puts "It's a tie!"
+    elsif WINS_OVER[human.move] == computer.move
+      puts "#{human.name} has won!"
+    else
+      puts "#{computer.name} has won!"
     end
   end
 
