@@ -4,7 +4,6 @@ module Walkable
   end
 end
 
-
 class Person
   include Walkable
   attr_reader :name
@@ -49,7 +48,6 @@ class Cheetah
     "runs"
   end
 end
-
 
 mike = Person.new("Mike")
 mike.walk

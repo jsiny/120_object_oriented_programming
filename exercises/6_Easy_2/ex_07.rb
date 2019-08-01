@@ -66,7 +66,6 @@ class Shelter
   end
 end
 
-
 butterscotch = Pet.new('cat', 'Butterscotch')
 pudding      = Pet.new('cat', 'Pudding')
 darwin       = Pet.new('bearded dragon', 'Darwin')
@@ -75,14 +74,13 @@ sweetie      = Pet.new('parakeet', 'Sweetie Pie')
 molly        = Pet.new('dog', 'Molly')
 chester      = Pet.new('fish', 'Chester')
 pixel        = Pet.new('cat', 'Pixel')
-asta         = Pet.new('dog', 'Asta')
-laddie       = Pet.new('dog', 'Laddie')
-fluffy       = Pet.new('cat', 'Fluffy')
-kat          = Pet.new('cat', 'Kat')
-ben          = Pet.new('cat', 'Ben')
-chatterbox   = Pet.new('parakeet', 'Chatterbox')
-bluebell     = Pet.new('parakeet', 'Bluebell')
-
+Pet.new('dog', 'Asta')
+Pet.new('dog', 'Laddie')
+Pet.new('cat', 'Fluffy')
+Pet.new('cat', 'Kat')
+Pet.new('cat', 'Ben')
+Pet.new('parakeet', 'Chatterbox')
+Pet.new('parakeet', 'Bluebell')
 
 phanson = Owner.new('P Hanson')
 bholmes = Owner.new('B Holmes')
@@ -104,4 +102,3 @@ puts "#{phanson.name} has #{phanson.number_of_pets} adopted pets."
 puts "#{bholmes.name} has #{bholmes.number_of_pets} adopted pets."
 puts "#{jsiny.name} has #{jsiny.number_of_pets} adopted pets."
 puts "The Animal Shelter has #{shelter.unadopted.size} unadopted pets."
-

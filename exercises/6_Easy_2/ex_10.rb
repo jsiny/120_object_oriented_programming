@@ -4,7 +4,6 @@ module Walkable
   end
 end
 
-
 class Person
   include Walkable
   attr_reader :name
@@ -42,7 +41,6 @@ class Noble
   def gait
     "struts"
   end
-
 end
 
 byron = Noble.new("Byron", "Lord")

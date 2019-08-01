@@ -10,6 +10,7 @@ class Wallet
   end
 
   protected
+
   attr_reader :amount
 end
 
