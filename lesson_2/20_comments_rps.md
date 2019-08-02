@@ -112,7 +112,7 @@ This refactoring also allowed me to get rid of the `scissors?` & cie methods.
 
 ## 3. Add a class for each move
 
-I've done this assignment in a [separate file](lesson_2/12_rps_5_classes.rb).
+I've done this assignment in a [separate file](12_rps_5_classes.rb).
 
 I felt that adding 5 subclasses to `Move` mostly complicated my program.
 I think the biggest 'pro' in favor of this design is simplifying the
