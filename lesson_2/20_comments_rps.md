@@ -3,7 +3,7 @@
 I'll explain here my design choices regarding the Assignment "Rock Paper
 Scissors" game.
 
-## 1. Keeping Score
+## 1. Keep track of the score
 
 I initially created a class `Score` in order to keep each player's score.
 A new `Score` object would be created upon instantiation of a `Player` object.
@@ -135,7 +135,37 @@ each subclass) for a tad more readability was not a good tradeoff.
 
 Therefore, to implement 5 empty classes, I had to change lots of details
 throughout the code (among other things, referencing the Class from the String
-through `Object.const_get`), for no gain in lisibility.
+through `Object.const_get`), for no gain in legibility.
 
 For the rest of the assignment, I've thus chosen to keep `Move` as one
 class only.
+
+## 4. Keep track of a history of moves
+
+As the history of moves is an element related to the player (it's *their* choice
+and this history must 'survive' the end of a round), I thought it would
+be best to include it as a state to the `Player` class.
+
+```ruby
+class Player
+  attr_accessor :move, :name, :score, :history
+
+  def initialize
+    set_name
+    @score = 0
+    @history = Hash.new(0)
+  end
+end
+```
+
+I've chosen to host this data as a hash in order to have as key the choice,
+and as value the number of times the player selected the option.
+
+My reasoning behind this was: there are probably two informations that might
+be of interest while choosing a new option:
+- Which option was picked last?
+- Does the player have a tendency to use a choice more frequently?
+
+I thought that the second question was the most interesting therefore I
+opted for a "count" hash. Besides, we could also easily implement a
+variable `last_choice` that could answer the first question.
