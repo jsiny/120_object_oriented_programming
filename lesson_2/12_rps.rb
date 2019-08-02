@@ -7,6 +7,12 @@ class Move
                     'spock'     => %w(scissors rock),
                     'lizard'    => %w(paper spock) }
 
+  LOSING_MOVES = {  'rock'      => %w(spock paper),
+                    'scissors'  => %w(spock rock),
+                    'paper'     => %w(lizard scissors),
+                    'spock'     => %w(lizard paper),
+                    'lizard'    => %w(rock scissors) }
+
   def initialize(value)
     @value = value
   end
@@ -77,21 +83,34 @@ class Human < Player
 end
 
 class Computer < Player
+
   def set_name
     self.name = %w(R2D2 Hal9000 Wall-e Baymax Bender Terminator AVA).sample
   end
 
-  def choose
-    choice = Move::WINNING_MOVES.keys.sample
+  def choose(opponent_history)
+    choice = if opponent_history.values.sum < 3
+               Move::WINNING_MOVES.keys.sample
+             else
+               favorite = find_favorite(opponent_history)
+               Move::LOSING_MOVES[favorite].sample
+             end
+
     self.move = Move.new(choice)
     @history[choice] += 1
+  end
+
+  private
+
+  def find_favorite(opponent_history)
+    opponent_history.key(opponent_history.values.max)
   end
 end
 
 class Game
   attr_accessor :human, :computer
 
-  POINTS_TO_WIN = 2
+  POINTS_TO_WIN = 3
   SEPARATOR = "-----------------------------------"
 
   def initialize
@@ -104,7 +123,7 @@ class Game
     loop do
       loop do
         human.choose
-        computer.choose
+        computer.choose(opponent_history)
         display_moves
         player_wins
         display_scores
@@ -128,6 +147,10 @@ class Game
 
   def display_goodbye_message
     puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock. Good bye!"
+  end
+
+  def opponent_history
+    human.history
   end
 
   def display_moves
