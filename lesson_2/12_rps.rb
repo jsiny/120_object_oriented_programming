@@ -6,16 +6,10 @@ class Move
   end
 
   def >(other_move)
-    rock?        && other_move.scissors? ||
-      paper?     && other_move.rock?     ||
-      scissors?  && other_move.paper?
+    scissors? && other_move.paper? ||
+      paper?  && other_move.rock?  ||
+      rock?   && other_move.scissors?
   end
-
-  # def <(other_move)
-  #   rock?       && other_move.paper?    ||
-  #     paper?    && other_move.scissors? ||
-  #     scissors? && other_move.rock?
-  # end
 
   def to_s
     @value
@@ -93,8 +87,10 @@ class Computer < Player
   end
 end
 
-class RPSGame
+class Game
   attr_accessor :human, :computer
+
+  SEPARATOR = "-----------------------------------"
 
   def initialize
     @human = Human.new
@@ -104,12 +100,16 @@ class RPSGame
   def play
     display_welcome_message
     loop do
-      human.choose
-      computer.choose
-      display_moves
-      player_wins
-      display_scores
+      loop do
+        human.choose
+        computer.choose
+        display_moves
+        player_wins
+        display_scores
+        break if grand_winner?
+      end
       break unless play_again?
+      new_game
     end
     display_goodbye_message
   end
@@ -118,6 +118,9 @@ class RPSGame
 
   def display_welcome_message
     puts "Welcome to Rock, Paper, Scissors"
+    puts "You'll need to win #{Score::POINTS_TO_WIN} rounds to become the "\
+      "Grand Winner!"
+    puts SEPARATOR
   end
 
   def display_goodbye_message
@@ -153,6 +156,18 @@ class RPSGame
     puts "SCORE: "\
       "#{human}: #{human.score.value} pt - "\
       "#{computer}: #{computer.score.value} pt"
+    puts SEPARATOR
+  end
+
+  def grand_winner?
+    if human.score.win?
+      puts "#{human} is the grand winner!"
+    elsif computer.score.win?
+      puts "#{computer} is the grand winner!"
+    else
+      return false
+    end
+    true
   end
 
   def play_again?
@@ -167,24 +182,35 @@ class RPSGame
 
     answer.downcase == 'y' ? true : false
   end
+
+  def new_game
+    puts SEPARATOR
+    puts "NEW GAME!"
+    human.score.wipe
+    computer.score.wipe
+  end
 end
 
 class Score
-  attr_accessor :value
+  attr_reader :value
 
-  POINTS_TO_WIN = 3
+  POINTS_TO_WIN = 2
 
   def initialize
     @value = 0
+  end
+
+  def win?
+    value >= POINTS_TO_WIN
   end
 
   def add_point
     @value += 1
   end
 
-  def win?
-    value >= POINTS_TO_WIN
+  def wipe
+    @value = 0
   end
 end
 
-RPSGame.new.play
+Game.new.play
