@@ -35,7 +35,7 @@ class Player
 
   def initialize
     set_name
-    @score = Score.new
+    @score = 0
   end
 
   def to_s
@@ -90,6 +90,7 @@ end
 class Game
   attr_accessor :human, :computer
 
+  POINTS_TO_WIN = 2
   SEPARATOR = "-----------------------------------"
 
   def initialize
@@ -118,7 +119,7 @@ class Game
 
   def display_welcome_message
     puts "Welcome to Rock, Paper, Scissors"
-    puts "You'll need to win #{Score::POINTS_TO_WIN} rounds to become the "\
+    puts "You'll need to win #{POINTS_TO_WIN} rounds to become the "\
       "Grand Winner!"
     puts SEPARATOR
   end
@@ -138,7 +139,7 @@ class Game
       puts "It's a tie!"
     else
       puts "#{winner} won!"
-      winner.score.add_point
+      winner.score += 1
     end
   end
 
@@ -154,15 +155,15 @@ class Game
 
   def display_scores
     puts "SCORE: "\
-      "#{human}: #{human.score.value} pt - "\
-      "#{computer}: #{computer.score.value} pt"
+      "#{human}: #{human.score} pt - "\
+      "#{computer}: #{computer.score} pt"
     puts SEPARATOR
   end
 
   def grand_winner?
-    if human.score.win?
+    if human.score > POINTS_TO_WIN
       puts "#{human} is the grand winner!"
-    elsif computer.score.win?
+    elsif computer.score > POINTS_TO_WIN
       puts "#{computer} is the grand winner!"
     else
       return false
@@ -186,30 +187,8 @@ class Game
   def new_game
     puts SEPARATOR
     puts "NEW GAME!"
-    human.score.wipe
-    computer.score.wipe
-  end
-end
-
-class Score
-  attr_reader :value
-
-  POINTS_TO_WIN = 2
-
-  def initialize
-    @value = 0
-  end
-
-  def win?
-    value >= POINTS_TO_WIN
-  end
-
-  def add_point
-    @value += 1
-  end
-
-  def wipe
-    @value = 0
+    human.score = 0
+    computer.score = 0
   end
 end
 
