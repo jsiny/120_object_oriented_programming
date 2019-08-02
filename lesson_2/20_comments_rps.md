@@ -112,7 +112,7 @@ This refactoring also allowed me to get rid of the `scissors?` & cie methods.
 
 ## 3. Add a class for each move
 
-I've done this assignment in a [separate file](../12_rps_5_classes.rb).
+I've done this assignment in a [separate file](/12_rps_5_classes.rb).
 
 I felt that adding 5 subclasses to `Move` mostly complicated my program.
 I think the biggest 'pro' in favor of this design is simplifying the
@@ -169,3 +169,56 @@ be of interest while choosing a new option:
 I thought that the second question was the most interesting therefore I
 opted for a "count" hash. Besides, we could also easily implement a
 variable `last_choice` that could answer the first question.
+
+## 5. Adjust computer choice based on history
+
+That assignment was trickier than I thought.
+
+I wanted to implement a feature allowing the Computer to better select
+its choices. My goal was to spot humans with repetitive preferences.
+For instance, if the player repeatedly selected 'rock', then the computer
+would choose 'spock' or 'paper'.
+
+At first, I tried to access the Human's history from the `Computer` class,
+which proved tricky. I couldn't access the history without tracking it with
+an instance variable within the `Computer` class (eg. having both
+`@history` and `@opponent_history`). As instance variables are supposed
+to reflect the *state* of an Object, this choice didn't feel right.
+
+Therefore, I've tweaked a bit my code and ended up with a slight change
+to my game loop (in `Game#play`): `computer.choose(human.history)`. With this
+argument, `Computer` gain access to `human.history`!
+
+My new `Computer` class looks like that:
+
+```ruby
+class Computer < Player
+  START_ANALYZING_HISTORY = 3
+
+  def choose(opponent_history)
+    choice = if history.values.sum < START_ANALYZING_HISTORY
+               Move::WINNING_MOVES.keys.sample
+             else
+               select_winner(opponent_history)
+             end
+
+    self.move = Move.new(choice)
+    @history[choice] += 1
+  end
+
+  private
+
+  def find_favorite(opponent_history)
+    opponent_history.key(opponent_history.values.max)
+  end
+
+  def select_winner(opponent_history)
+    favorite = find_favorite(opponent_history)
+    Move::LOSING_MOVES[favorite].sample
+  end
+end
+```
+
+The "smart choices" only start to be applied after 3 rounds (hence the
+`START_ANALYZING_HISTORY` constant), because we can't reveal a trend sooner
+without unveiling the player's choice.
