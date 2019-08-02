@@ -1,32 +1,22 @@
 class Move
-  VALUES = %w(rock paper scissors)
+  attr_reader :value
+
+  WINNING_MOVES = { 'rock'      => %w(scissors lizard),
+                    'scissors'  => %w(paper lizard),
+                    'paper'     => %w(rock spock),
+                    'spock'     => %w(scissors rock),
+                    'lizard'    => %w(paper spock) }
 
   def initialize(value)
     @value = value
   end
 
   def >(other_move)
-    scissors? && other_move.paper? ||
-      paper?  && other_move.rock?  ||
-      rock?   && other_move.scissors?
+    WINNING_MOVES[value].include?(other_move.value)
   end
 
   def to_s
     @value
-  end
-
-  protected
-
-  def scissors?
-    @value == 'scissors'
-  end
-
-  def rock?
-    @value == 'rock'
-  end
-
-  def paper?
-    @value == 'paper'
   end
 end
 
@@ -58,10 +48,10 @@ class Human < Player
   def choose
     choice = nil
     loop do
-      puts 'Please choose (r)ock, (p)aper, or (s)cissors:'
+      puts 'Please choose (r)ock, (p)aper, (s)cissors, (l)izard or (sp)ock:'
       choice = convert(gets.chomp.downcase)
-      break if Move::VALUES.include?(choice)
-      puts "Sorry, invalid choice: you must type 'r', 'p' or 's'."
+      break if Move::WINNING_MOVES.keys.include?(choice)
+      puts "Sorry, invalid choice: you must type 'r', 'p', 's' 'l' or 'sp'."
     end
     self.move = Move.new(choice)
   end
@@ -70,9 +60,11 @@ class Human < Player
 
   def convert(choice)
     case choice
-    when 'r' then 'rock'
-    when 'p' then 'paper'
-    when 's' then 'scissors'
+    when 'r'  then 'rock'
+    when 'p'  then 'paper'
+    when 's'  then 'scissors'
+    when 'sp' then 'spock'
+    when 'l'  then 'lizard'
     end
   end
 end
@@ -83,7 +75,7 @@ class Computer < Player
   end
 
   def choose
-    self.move = Move.new(Move::VALUES.sample)
+    self.move = Move.new(Move::WINNING_MOVES.keys.sample)
   end
 end
 
@@ -118,14 +110,14 @@ class Game
   private
 
   def display_welcome_message
-    puts "Welcome to Rock, Paper, Scissors"
+    puts "Welcome to Rock, Paper, Scissors, Lizard, Spock!"
     puts "You'll need to win #{POINTS_TO_WIN} rounds to become the "\
       "Grand Winner!"
     puts SEPARATOR
   end
 
   def display_goodbye_message
-    puts "Thanks for playing Rock, Paper, Scissors. Good bye!"
+    puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock. Good bye!"
   end
 
   def display_moves
