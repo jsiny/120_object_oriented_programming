@@ -90,7 +90,7 @@ class Computer < Player
   end
 
   def choose(opponent_history)
-    choice = if opponent_history.values.sum < START_ANALYZING_HISTORY
+    choice = if history.values.sum < START_ANALYZING_HISTORY
                Move::WINNING_MOVES.keys.sample
              else
                select_winner(opponent_history)
@@ -128,7 +128,7 @@ class Game
     loop do
       loop do
         human.choose
-        computer.choose(opponent_history)
+        computer.choose(human.history)
         display_moves
         player_wins
         display_scores
@@ -152,10 +152,6 @@ class Game
 
   def display_goodbye_message
     puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock. Good bye!"
-  end
-
-  def opponent_history
-    human.history
   end
 
   def display_moves
