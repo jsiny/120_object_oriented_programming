@@ -17,6 +17,12 @@ class Move
       scissors? && other_move.rock?
   end
 
+  def to_s
+    @value
+  end
+
+  protected
+
   def scissors?
     @value == 'scissors'
   end
@@ -27,10 +33,6 @@ class Move
 
   def paper?
     @value == 'paper'
-  end
-
-  def to_s
-    @value
   end
 end
 
@@ -48,21 +50,31 @@ class Human < Player
     loop do
       puts "What's your name?"
       n = gets.chomp
-      break unless n.empty?
+      break unless n.strip.empty?
       puts "Sorry, must enter a value"
     end
-    self.name = n
+    self.name = n.strip
   end
 
   def choose
     choice = nil
     loop do
-      puts 'Please choose rock, paper, or scissors:'
-      choice = gets.chomp
+      puts 'Please choose (r)ock, (p)aper, or (s)cissors:'
+      choice = convert(gets.chomp.downcase)
       break if Move::VALUES.include?(choice)
-      puts 'Sorry, invalid choice.'
+      puts "Sorry, invalid choice: you must type 'r', 'p' or 's'."
     end
     self.move = Move.new(choice)
+  end
+
+  private
+
+  def convert(choice)
+    case choice
+    when 'r' then 'rock'
+    when 'p' then 'paper'
+    when 's' then 'scissors'
+    end
   end
 end
 
@@ -128,7 +140,7 @@ class RPSGame
       puts "Would you like to play again? (y/n)"
       answer = gets.chomp
       break if %w(y n).include? answer.downcase
-      puts "Sorry, must be y or n."
+      puts "Sorry, must be 'y' or 'n'."
     end
 
     answer.downcase == 'y' ? true : false
