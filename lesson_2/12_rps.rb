@@ -21,15 +21,21 @@ class Move
 end
 
 class Player
-  attr_accessor :move, :name, :score
+  attr_accessor :move, :name, :score, :history
 
   def initialize
     set_name
     @score = 0
+    @history = Hash.new(0)
   end
 
   def to_s
     name
+  end
+
+  def display_history
+    puts "#{name} has chosen:"
+    @history.each { |choice, count| puts "- #{choice.capitalize} #{count} times" }
   end
 end
 
@@ -38,7 +44,7 @@ class Human < Player
     n = ''
     loop do
       puts "What's your name?"
-      n = gets.chomp.delete('^a-zA-Z ').squeeze.strip
+      n = gets.chomp.delete('^a-zA-Z ').strip
       break unless n.empty?
       puts "Sorry, you must enter your name"
     end
@@ -54,6 +60,7 @@ class Human < Player
       puts "Sorry, invalid choice: you must type 'r', 'p', 's' 'l' or 'sp'."
     end
     self.move = Move.new(choice)
+    @history[choice] += 1
   end
 
   private
@@ -75,7 +82,9 @@ class Computer < Player
   end
 
   def choose
-    self.move = Move.new(Move::WINNING_MOVES.keys.sample)
+    choice = Move::WINNING_MOVES.keys.sample
+    self.move = Move.new(choice)
+    @history[choice] += 1
   end
 end
 
@@ -100,6 +109,7 @@ class Game
         player_wins
         display_scores
         break if grand_winner?
+        display_histories
       end
       break unless play_again?
       new_game
@@ -152,11 +162,19 @@ class Game
     puts SEPARATOR
   end
 
+  def display_histories
+    sleep 2
+    puts "HISTORY:"
+    human.display_history
+    computer.display_history
+    puts SEPARATOR
+  end
+
   def grand_winner?
-    if human.score > POINTS_TO_WIN
-      puts "#{human} is the grand winner!"
-    elsif computer.score > POINTS_TO_WIN
-      puts "#{computer} is the grand winner!"
+    if human.score >= POINTS_TO_WIN
+      puts "#{human} is the Grand Winner!"
+    elsif computer.score >= POINTS_TO_WIN
+      puts "#{computer} is the Grand Winner!"
     else
       return false
     end
