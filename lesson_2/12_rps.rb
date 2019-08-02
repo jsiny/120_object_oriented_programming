@@ -38,11 +38,11 @@ class Human < Player
     n = ''
     loop do
       puts "What's your name?"
-      n = gets.chomp
-      break unless n.strip.empty?
-      puts "Sorry, must enter a value"
+      n = gets.chomp.delete('^a-zA-Z ').squeeze.strip
+      break unless n.empty?
+      puts "Sorry, you must enter your name"
     end
-    self.name = n.strip
+    self.name = n
   end
 
   def choose
