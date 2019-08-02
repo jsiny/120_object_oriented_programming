@@ -11,11 +11,11 @@ class Move
       scissors?  && other_move.paper?
   end
 
-  def <(other_move)
-    rock?       && other_move.paper?    ||
-      paper?    && other_move.scissors? ||
-      scissors? && other_move.rock?
-  end
+  # def <(other_move)
+  #   rock?       && other_move.paper?    ||
+  #     paper?    && other_move.scissors? ||
+  #     scissors? && other_move.rock?
+  # end
 
   def to_s
     @value
@@ -37,10 +37,15 @@ class Move
 end
 
 class Player
-  attr_accessor :move, :name
+  attr_accessor :move, :name, :score
 
   def initialize
     set_name
+    @score = Score.new
+  end
+
+  def to_s
+    name
   end
 end
 
@@ -102,7 +107,8 @@ class RPSGame
       human.choose
       computer.choose
       display_moves
-      display_winner
+      player_wins
+      display_scores
       break unless play_again?
     end
     display_goodbye_message
@@ -119,18 +125,34 @@ class RPSGame
   end
 
   def display_moves
-    puts "#{human.name} chose #{human.move}."
-    puts "#{computer.name} chose #{computer.move}."
+    puts "#{human} chose #{human.move}."
+    puts "#{computer} chose #{computer.move}."
   end
 
-  def display_winner
-    if human.move > computer.move
-      puts "#{human.name} won!"
-    elsif human.move < computer.move
-      puts "#{computer.name} won!"
-    else
+  def player_wins
+    winner = find_winner
+    if winner == :tie
       puts "It's a tie!"
+    else
+      puts "#{winner} won!"
+      winner.score.add_point
     end
+  end
+
+  def find_winner
+    if human.move > computer.move
+      human
+    elsif computer.move > human.move
+      computer
+    else
+      :tie
+    end
+  end
+
+  def display_scores
+    puts "SCORE: "\
+      "#{human}: #{human.score.value} pt - "\
+      "#{computer}: #{computer.score.value} pt"
   end
 
   def play_again?
@@ -144,6 +166,24 @@ class RPSGame
     end
 
     answer.downcase == 'y' ? true : false
+  end
+end
+
+class Score
+  attr_accessor :value
+
+  POINTS_TO_WIN = 3
+
+  def initialize
+    @value = 0
+  end
+
+  def add_point
+    @value += 1
+  end
+
+  def win?
+    value >= POINTS_TO_WIN
   end
 end
 
