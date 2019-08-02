@@ -41,7 +41,7 @@ class Player
 
   def display_history
     puts "#{name} has chosen:"
-    @history.each { |choice, count| puts "- #{choice.capitalize} #{count} times" }
+    @history.each { |choice, nb| puts "- #{choice.capitalize} #{nb} times" }
   end
 end
 
@@ -83,17 +83,17 @@ class Human < Player
 end
 
 class Computer < Player
+  START_ANALYZING_HISTORY = 3
 
   def set_name
     self.name = %w(R2D2 Hal9000 Wall-e Baymax Bender Terminator AVA).sample
   end
 
   def choose(opponent_history)
-    choice = if opponent_history.values.sum < 3
+    choice = if opponent_history.values.sum < START_ANALYZING_HISTORY
                Move::WINNING_MOVES.keys.sample
              else
-               favorite = find_favorite(opponent_history)
-               Move::LOSING_MOVES[favorite].sample
+               select_winner(opponent_history)
              end
 
     self.move = Move.new(choice)
@@ -104,6 +104,11 @@ class Computer < Player
 
   def find_favorite(opponent_history)
     opponent_history.key(opponent_history.values.max)
+  end
+
+  def select_winner(opponent_history)
+    favorite = find_favorite(opponent_history)
+    Move::LOSING_MOVES[favorite].sample
   end
 end
 
