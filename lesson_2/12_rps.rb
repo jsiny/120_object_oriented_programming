@@ -83,32 +83,83 @@ class Human < Player
 end
 
 class Computer < Player
+  attr_reader :personality, :first_choice
+
   START_ANALYZING_HISTORY = 3
+  PERSONALITIES = { 'R2D2'    => :random,
+                    'HAL9000' => :strategist,
+                    'Wall-E'  => :copycat,
+                    'Bender'  => :stubborn }
+
+  # - R2D2 always acts randomly, yet things always turn out great for him
+  # - HAL9000 is a mastermind strategist: he will therefore analyse its
+  # opponent's behavior in order to optimize his own
+  # - Wall-E tries to learn from human behavior and therefore will copy
+  # the opponent's favorite move
+  # - Bender is extremely stubborn and will always repeat its first (random)
+  # move (because how could he have been wrong?)
+
+  def initialize
+    super
+    set_personality
+  end
 
   def set_name
-    self.name = %w(R2D2 Hal9000 Wall-e Baymax Bender Terminator AVA).sample
+    self.name = %w(R2D2 HAL9000 Wall-E Bender).sample
+  end
+
+  def set_personality
+    @personality = PERSONALITIES[name]
   end
 
   def choose(opponent_history)
-    choice = if history.values.sum < START_ANALYZING_HISTORY
-               Move::WINNING_MOVES.keys.sample
-             else
-               select_winner(opponent_history)
-             end
-
+    choice = choose_from_personality(opponent_history)
     self.move = Move.new(choice)
     @history[choice] += 1
   end
 
+  def choose_from_personality(opponent_history)
+    case @personality
+    when :random      then choose_randomly
+    when :strategist  then counter_favorite_move(opponent_history)
+    when :copycat     then copy_favorite_move(opponent_history)
+    when :stubborn    then repeat_same_move
+    end
+  end
+
   private
+
+  def choose_randomly
+    Move::WINNING_MOVES.keys.sample
+  end
 
   def find_favorite(opponent_history)
     opponent_history.key(opponent_history.values.max)
   end
 
-  def select_winner(opponent_history)
-    favorite = find_favorite(opponent_history)
-    Move::LOSING_MOVES[favorite].sample
+  def counter_favorite_move(opponent_history)
+    if @history.values.sum < 3
+      choose_randomly
+    else
+      favorite = find_favorite(opponent_history)
+      Move::LOSING_MOVES[favorite].sample
+    end
+  end
+
+  def repeat_same_move
+    if @history.empty?
+      @first_choice = choose_randomly
+    else
+      first_choice
+    end
+  end
+
+  def copy_favorite_move(opponent_history)
+    if @history.empty?
+      choose_randomly
+    else
+      find_favorite(opponent_history)
+    end
   end
 end
 
@@ -116,6 +167,7 @@ class Game
   attr_accessor :human, :computer
 
   POINTS_TO_WIN = 3
+  SLEEPING_TIME = 2
   SEPARATOR = "-----------------------------------"
 
   def initialize
@@ -145,6 +197,7 @@ class Game
 
   def display_welcome_message
     puts "Welcome to Rock, Paper, Scissors, Lizard, Spock!"
+    puts "You'll be playing against #{computer.name}."
     puts "You'll need to win #{POINTS_TO_WIN} rounds to become the "\
       "Grand Winner!"
     puts SEPARATOR
@@ -152,6 +205,8 @@ class Game
 
   def display_goodbye_message
     puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock. Good bye!"
+    sleep SLEEPING_TIME
+    system('clear') || system('cls')
   end
 
   def display_moves
@@ -187,7 +242,7 @@ class Game
   end
 
   def display_histories
-    sleep 2
+    sleep SLEEPING_TIME
     puts "HISTORY:"
     human.display_history
     computer.display_history
