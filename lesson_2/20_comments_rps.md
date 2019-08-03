@@ -196,12 +196,7 @@ class Computer < Player
   START_ANALYZING_HISTORY = 3
 
   def choose(opponent_history)
-    choice = if history.values.sum < START_ANALYZING_HISTORY
-               Move::WINNING_MOVES.keys.sample
-             else
-               select_winner(opponent_history)
-             end
-
+    choice = counter_favorite_move(opponent_history)
     self.move = Move.new(choice)
     @history[choice] += 1
   end
@@ -212,13 +207,113 @@ class Computer < Player
     opponent_history.key(opponent_history.values.max)
   end
 
-  def select_winner(opponent_history)
-    favorite = find_favorite(opponent_history)
-    Move::LOSING_MOVES[favorite].sample
+  def counter_favorite_move(opponent_history)
+    if @history.values.sum < 3
+      choose_randomly
+    else
+      favorite = find_favorite(opponent_history)
+      Move::LOSING_MOVES[favorite].sample
+    end
   end
 end
 ```
 
+*Note*: I've later refactored this class in section 6, with additional
+functionalities.
+
 The "smart choices" only start to be applied after 3 rounds (hence the
 `START_ANALYZING_HISTORY` constant), because we can't reveal a trend sooner
 without unveiling the player's choice.
+
+## 6. Include some computer personalities
+
+I chose to implement 4 different personalities:
+* R2D2 would always choose a move randomly, as things always turn out fine for
+him
+* HAL9000, the mastermind, would analyse its oponent's behavior and try to
+counter their favorite moves (ie. the strategy implemented in section 5)
+* Wall-E, the copycat, would also study the human's behavior but would choose
+to mimick their favorite move
+* Bender, stubborn as he is, would randomly choose one move at first and then
+stick with it for the whole game.
+
+In order to implement these personalities, I've added an `initialize` method
+specific to the `Computer` class, that would decide the instance's personality.
+
+Then, with a case statement, the `choose` method would select the correct
+method depending on the computer's `@personality`.
+
+This is my `Computer` class after this implementation:
+
+```ruby
+class Computer < Player
+  attr_reader :personality, :first_choice
+
+  START_ANALYZING_HISTORY = 3
+  PERSONALITIES = { 'R2D2'    => :random,
+                    'HAL9000' => :strategist,
+                    'Wall-E'  => :copycat,
+                    'Bender'  => :stubborn }
+
+  def initialize
+    super
+    set_personality
+  end
+
+  def set_personality
+    @personality = PERSONALITIES[name]
+  end
+
+  def choose(opponent_history)
+    choice = choose_from_personality(opponent_history)
+    self.move = Move.new(choice)
+    @history[choice] += 1
+  end
+
+  def choose_from_personality(opponent_history)
+    case @personality
+    when :random      then choose_randomly
+    when :strategist  then counter_favorite_move(opponent_history)
+    when :copycat     then copy_favorite_move(opponent_history)
+    when :stubborn    then repeat_same_move
+    end
+  end
+
+  private
+
+  def choose_randomly
+    Move::WINNING_MOVES.keys.sample
+  end
+
+  def find_favorite(opponent_history)
+    opponent_history.key(opponent_history.values.max)
+  end
+
+  def counter_favorite_move(opponent_history)
+    if @history.values.sum < 3
+      choose_randomly
+    else
+      favorite = find_favorite(opponent_history)
+      Move::LOSING_MOVES[favorite].sample
+    end
+  end
+
+  def repeat_same_move
+    if @history.empty?
+      @first_choice = choose_randomly
+    else
+      first_choice
+    end
+  end
+
+  def copy_favorite_move(opponent_history)
+    if @history.empty?
+      choose_randomly
+    else
+      find_favorite(opponent_history)
+    end
+  end
+end
+```
+
+Voilà!
