@@ -235,7 +235,7 @@ counter their favorite moves (ie. the strategy implemented in section 5)
 * Wall-E, the copycat, would also study the human's behavior but would choose
 to mimick their favorite move
 * Bender, stubborn as he is, would randomly choose one move at first and then
-stick with it for the whole game.
+stick to it for the whole game.
 
 In order to implement these personalities, I've added an `initialize` method
 specific to the `Computer` class, that would decide the instance's personality.

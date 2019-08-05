@@ -171,6 +171,7 @@ class Game
   SEPARATOR = "-----------------------------------"
 
   def initialize
+    clear
     @human = Human.new
     @computer = Computer.new
   end
@@ -195,6 +196,10 @@ class Game
 
   private
 
+  def clear
+    system('clear') || system('cls')
+  end
+
   def display_welcome_message
     puts "Welcome to Rock, Paper, Scissors, Lizard, Spock!"
     puts "You'll be playing against #{computer.name}."
@@ -206,7 +211,7 @@ class Game
   def display_goodbye_message
     puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock. Good bye!"
     sleep SLEEPING_TIME
-    system('clear') || system('cls')
+    clear
   end
 
   def display_moves
@@ -242,11 +247,12 @@ class Game
   end
 
   def display_histories
-    sleep SLEEPING_TIME
     puts "HISTORY:"
     human.display_history
     computer.display_history
     puts SEPARATOR
+    sleep SLEEPING_TIME * 2
+    clear
   end
 
   def grand_winner?
@@ -274,6 +280,7 @@ class Game
   end
 
   def new_game
+    clear
     puts SEPARATOR
     puts "NEW GAME!"
     human.score = 0
