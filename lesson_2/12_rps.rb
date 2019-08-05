@@ -46,17 +46,6 @@ class Player
 end
 
 class Human < Player
-  def set_name
-    n = ''
-    loop do
-      puts "What's your name?"
-      n = gets.chomp.delete('^a-zA-Z ').strip
-      break unless n.empty?
-      puts "Sorry, you must enter your name"
-    end
-    self.name = n
-  end
-
   def choose
     choice = nil
     loop do
@@ -70,6 +59,17 @@ class Human < Player
   end
 
   private
+
+  def set_name
+    n = ''
+    loop do
+      puts "What's your name?"
+      n = gets.chomp.delete('^a-zA-Z ').strip
+      break unless n.empty?
+      puts "Sorry, you must enter your name"
+    end
+    self.name = n
+  end
 
   def convert(choice)
     case choice
@@ -104,18 +104,20 @@ class Computer < Player
     set_personality
   end
 
+  def choose(opponent_history)
+    choice = choose_from_personality(opponent_history)
+    self.move = Move.new(choice)
+    @history[choice] += 1
+  end
+
+  private
+
   def set_name
     self.name = %w(R2D2 HAL9000 Wall-E Bender).sample
   end
 
   def set_personality
     @personality = PERSONALITIES[name]
-  end
-
-  def choose(opponent_history)
-    choice = choose_from_personality(opponent_history)
-    self.move = Move.new(choice)
-    @history[choice] += 1
   end
 
   def choose_from_personality(opponent_history)
@@ -127,8 +129,6 @@ class Computer < Player
     end
   end
 
-  private
-
   def choose_randomly
     Move::WINNING_MOVES.keys.sample
   end
@@ -138,7 +138,7 @@ class Computer < Player
   end
 
   def counter_favorite_move(opponent_history)
-    if @history.values.sum < 3
+    if @history.values.sum < START_ANALYZING_HISTORY
       choose_randomly
     else
       favorite = find_favorite(opponent_history)
