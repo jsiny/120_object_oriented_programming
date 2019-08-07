@@ -276,7 +276,7 @@ class Game
       puts "Sorry, must be 'y' or 'n'."
     end
 
-    answer.downcase == 'y' ? true : false
+    answer.downcase == 'y'
   end
 
   def new_game
