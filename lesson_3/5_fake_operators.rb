@@ -15,6 +15,14 @@ class Team
     temp_team.members = members + other_team.members
     temp_team
   end
+
+  def [](idx)
+    members[idx]
+  end
+
+  def []=(idx, object)
+    members[idx] = object
+  end
 end
 
 class Person
@@ -42,3 +50,7 @@ niners << Person.new("Deion Sanders", 47)
 
 dream_team = cowboys + niners
 p dream_team
+
+p cowboys[1]
+cowboys[3] = Person.new("JJ", 72)
+p cowboys[3]
