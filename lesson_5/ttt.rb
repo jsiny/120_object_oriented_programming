@@ -1,4 +1,4 @@
-require 'pry'
+# require 'pry'
 
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
@@ -7,6 +7,7 @@ class Board
 
   def initialize
     @squares = {}
+    @center = 5
     reset
   end
 
@@ -61,9 +62,10 @@ class Board
     @squares.values_at(*line).map(&:marker)
   end
 
-  def move_to_win
+  def best_move
     line = find_strategic_square(Game::COMPUTER_MARKER)
     line ||= find_strategic_square(Game::HUMAN_MARKER)
+    line ||= [@center]
     line.nil? ? nil : (unmarked_keys & line).first
   end
 
@@ -205,7 +207,7 @@ class Game
   end
 
   def computer_moves
-    move = board.move_to_win
+    move = board.best_move
     move ||= board.unmarked_keys.sample
     board[move] = computer.marker
   end
