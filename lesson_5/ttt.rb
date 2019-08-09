@@ -102,6 +102,18 @@ class Player
   end
 end
 
+class Human < Player
+  def initialize
+    super(Game::HUMAN_MARKER, "Juliette")
+  end
+end
+
+class Computer < Player
+  def initialize
+    super(Game::COMPUTER_MARKER, "Wall-E")
+  end
+end
+
 class Game
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
@@ -112,8 +124,8 @@ class Game
 
   def initialize
     @board = Board.new
-    @human = Player.new(HUMAN_MARKER, "Juliette")
-    @computer = Player.new(COMPUTER_MARKER, "Wall-E")
+    @human = Human.new
+    @computer = Computer.new
     @current_player = FIRST_MOVE
   end
 
