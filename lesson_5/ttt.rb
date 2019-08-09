@@ -61,28 +61,25 @@ class Board
     @squares.values_at(*line).map(&:marker)
   end
 
-  def find_opportunity
-    WINNING_LINES.each do |line|
-      markers = get_markers_at(line)
-      return line if identical_markers?(2, markers) 
-    end
-    nil
-  end
-
-  def move_to_win(marker)
-    line = find_opportunity
-    # need to find opportunity for itself or against the human
+  def move_to_win
+    line = find_strategic_square(Game::COMPUTER_MARKER)
+    line ||= find_strategic_square(Game::HUMAN_MARKER)
+    line.nil? ? nil : (unmarked_keys & line).first
   end
 
   private
 
-  def identical_markers?(number, markers)
-    markers.delete(Square::INITIAL_MARKER)
-    markers.uniq.size == 1 && markers.size == number
+  def find_strategic_square(player_marker)
+    WINNING_LINES.each do |line|
+      markers = get_markers_at(line)
+      return line if identical_markers?(2, markers, player_marker)
+    end
+    nil
   end
 
-  def marker_type
-
+  def identical_markers?(number, markers, player_marker)
+    markers.delete(Square::INITIAL_MARKER)
+    markers.uniq == [player_marker] && markers.size == number
   end
 end
 
@@ -208,15 +205,9 @@ class Game
   end
 
   def computer_moves
-    board[computer_strategy] = computer.marker
-  end
-
-  def computer_strategy
-    if board.find_opportunity
-      opportunity = board.unmarked_keys & board.find_opportunity
-      return opportunity.sample
-    end
-    board.unmarked_keys.sample
+    move = board.move_to_win
+    move ||= board.unmarked_keys.sample
+    board[move] = computer.marker
   end
 
   def joinor(array, separator = ', ', word = 'or')
@@ -226,7 +217,7 @@ class Game
 
   def record_score
     case board.winning_marker
-    when HUMAN_MARKER     then human.add_point 
+    when HUMAN_MARKER     then human.add_point
     when COMPUTER_MARKER  then computer.add_point
     end
   end
