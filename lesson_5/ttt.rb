@@ -89,10 +89,16 @@ class Square
 end
 
 class Player
-  attr_reader :marker
+  attr_reader :marker, :score, :name
 
-  def initialize(marker)
+  def initialize(marker, name)
     @marker = marker
+    @score = 0
+    @name = name
+  end
+
+  def add_point
+    @score += 1
   end
 end
 
@@ -100,13 +106,14 @@ class Game
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
   FIRST_MOVE = HUMAN_MARKER
+  NUMBER_OF_WINS = 2
 
   attr_reader :board, :human, :computer
 
   def initialize
     @board = Board.new
-    @human = Player.new(HUMAN_MARKER)
-    @computer = Player.new(COMPUTER_MARKER)
+    @human = Player.new(HUMAN_MARKER, "Juliette")
+    @computer = Player.new(COMPUTER_MARKER, "Wall-E")
     @current_player = FIRST_MOVE
   end
 
@@ -116,14 +123,16 @@ class Game
 
     loop do
       display_board
-
-      loop do
-        current_player_moves
-        break if board.someone_won? || board.full?
-        clear_screen_and_display_board if human_turn?
-      end
+      players_moves
+      record_score
       display_result
-      break unless play_again?
+      sleep 2
+      # break unless play_again?
+      if grand_winner?
+        display_grand_winner
+        break
+      end
+
       reset
       display_play_again_message
     end
@@ -132,6 +141,14 @@ class Game
   end
 
   private
+
+  def players_moves
+    loop do
+      current_player_moves
+      break if board.someone_won? || board.full?
+      clear_screen_and_display_board if human_turn?
+    end
+  end
 
   def human_turn?
     @current_player == HUMAN_MARKER
@@ -167,6 +184,10 @@ class Game
     array[0...-1].join(separator) + "#{separator + word} #{array[-1]}"
   end
 
+  def record_score
+    board.winning_marker == HUMAN_MARKER ? human.add_point : computer.add_point
+  end
+
   def display_result
     clear_screen_and_display_board
 
@@ -175,6 +196,25 @@ class Game
     when computer.marker then puts 'Computer won!'
     else puts "It's a tie!"
     end
+
+    display_score
+  end
+
+  def display_score
+    puts ""
+    puts "SCORE:"
+    puts "Player: #{human.score} - Computer: #{computer.score}"
+    puts ""
+  end
+
+  def grand_winner?
+    return human.name if human.score >= NUMBER_OF_WINS
+    return computer.name if computer.score >= NUMBER_OF_WINS
+    nil
+  end
+
+  def display_grand_winner
+    puts "#{grand_winner?} has won the game!!"
   end
 
   def play_again?
@@ -190,6 +230,8 @@ class Game
 
   def display_welcome_message
     puts 'Welcome to Tic Tac toe!'
+    puts "The first player who reaches #{NUMBER_OF_WINS} wins becomes the "\
+      "Grand winner"
     puts ''
   end
 
