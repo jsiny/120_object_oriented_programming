@@ -1,6 +1,8 @@
 require 'pry'
 
 class Board
+  # attr_reader :center
+
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # colons
                   [[1, 5, 9], [3, 5, 7]]              # diagonals
@@ -50,7 +52,7 @@ class Board
   def winning_marker
     WINNING_LINES.each do |line|
       markers = get_markers_at(line)
-      [Game::HUMAN_MARKER, Game::COMPUTER_MARKER].each do |marker|
+      [Game::MARKER_1, Game::MARKER_2].each do |marker|
         return marker if markers.count(marker) == 3
       end
     end
@@ -61,22 +63,19 @@ class Board
     @squares.values_at(*line).map(&:marker)
   end
 
-  def best_move
-    line = find_strategic_square(Game::COMPUTER_MARKER)
-    line ||= find_strategic_square(Game::HUMAN_MARKER)
-    line ||= [@center]
-    line.nil? ? nil : (unmarked_keys & line).sample
-  end
-
-  private
-
-  def find_strategic_square(player_marker)
+  def find_strategic_square(marker)
     WINNING_LINES.each do |line|
       markers = get_markers_at(line)
-      return line if identical_markers?(2, markers, player_marker)
+      return line & unmarked_keys if identical_markers?(2, markers, marker)
     end
     nil
   end
+
+  def place_center_square
+    [@center] if unmarked_keys.include?(@center)
+  end
+
+  private
 
   def identical_markers?(number, markers, player_marker)
     markers.delete(Square::INITIAL_MARKER)
@@ -107,10 +106,11 @@ class Square
 end
 
 class Player
-  attr_reader :marker, :score, :name
+  attr_reader :score, :name
+  attr_accessor :marker
 
-  def initialize(marker, name)
-    @marker = marker
+  def initialize(name)
+    @marker = nil
     @score = 0
     @name = name
   end
@@ -122,19 +122,19 @@ end
 
 class Human < Player
   def initialize
-    super(Game::HUMAN_MARKER, "Juliette")
+    super("Juliette")
   end
 end
 
 class Computer < Player
   def initialize
-    super(Game::COMPUTER_MARKER, "Wall-E")
+    super("Wall-E")
   end
 end
 
 class Game
-  HUMAN_MARKER = 'X'
-  COMPUTER_MARKER = 'O'
+  MARKER_1 = 'X'
+  MARKER_2 = 'O'
   NUMBER_OF_WINS = 2
 
   attr_reader :board, :human, :computer
@@ -156,14 +156,15 @@ class Game
 
   def setup_game
     set_first_move
+    set_markers
     set_current_marker
   end
 
   def set_first_move
-    ask_first_move if @first_move == :choose
+    choose_first_move if @first_move == :choose
   end
 
-  def ask_first_move
+  def choose_first_move
     answer = ''
     loop do
       puts "Who should start the game: (y)ou or the (c)omputer?"
@@ -176,6 +177,22 @@ class Game
                   when 'y' then :human
                   when 'c' then :computer
                   end
+  end
+
+  def set_markers
+    human.marker = choose_marker
+    computer.marker = (human.marker == MARKER_1 ? MARKER_2 : MARKER_1)
+  end
+
+  def choose_marker
+    choice = ''
+    loop do
+      puts "Do you want to play with a marker '#{MARKER_1}' or '#{MARKER_2}'?"
+      choice = gets.chomp.upcase
+      break if [MARKER_1, MARKER_2].include?(choice)
+      puts "Sorry, you must type '#{MARKER_1}' or '#{MARKER_2}'"
+    end
+    choice
   end
 
   def set_current_marker
@@ -244,8 +261,12 @@ class Game
   end
 
   def computer_moves
-    move = board.best_move
-    move ||= board.unmarked_keys.sample
+    best_moves = board.find_strategic_square(computer.marker)  ||
+                 board.find_strategic_square(human.marker)     ||
+                 board.place_center_square                     ||
+                 board.unmarked_keys
+
+    move = best_moves.sample
     board[move] = computer.marker
   end
 
