@@ -50,7 +50,7 @@ class Board
   def winning_marker
     WINNING_LINES.each do |line|
       markers = get_markers_at(line)
-      return markers.first if three_identical_markers?(markers)
+      return markers.first if identical_markers?(3, markers)
     end
     nil
   end
@@ -59,19 +59,19 @@ class Board
     @squares.values_at(*line).map(&:marker)
   end
 
-  def find_opportunity(marker)
+  def find_opportunity
     WINNING_LINES.each do |line|
-      # select line with 2 identical markers
+      markers = get_markers_at(line)
+      return line if identical_markers?(2, markers) 
     end
-    # return key opportunity or nil
     nil
   end
 
   private
 
-  def three_identical_markers?(markers)
+  def identical_markers?(number, markers)
     markers.delete(Square::INITIAL_MARKER)
-    markers.uniq.size == 1 && markers.size == 3
+    markers.uniq.size == 1 && markers.size == number
   end
 end
 
@@ -201,7 +201,10 @@ class Game
   end
 
   def computer_strategy
-    # return best_move if find_opportunity(HUMAN_MARKER)
+    if board.find_opportunity
+      opportunity = board.unmarked_keys & board.find_opportunity
+      return opportunity.sample
+    end
     board.unmarked_keys.sample
   end
 
