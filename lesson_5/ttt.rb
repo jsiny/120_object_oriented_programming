@@ -1,4 +1,4 @@
-# require 'pry'
+require 'pry'
 
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
@@ -49,20 +49,29 @@ class Board
   # returns winning marker or returns nil
   def winning_marker
     WINNING_LINES.each do |line|
-      squares = @squares.values_at(*line)
-      if three_identical_markers?(squares)
-        return squares.first.marker
-      end
+      markers = get_markers_at(line)
+      return markers.first if three_identical_markers?(markers)
     end
+    nil
+  end
+
+  def get_markers_at(line)
+    @squares.values_at(*line).map(&:marker)
+  end
+
+  def find_opportunity(marker)
+    WINNING_LINES.each do |line|
+      # select line with 2 identical markers
+    end
+    # return key opportunity or nil
     nil
   end
 
   private
 
-  def three_identical_markers?(squares)
-    markers = squares.select(&:marked?).map(&:marker)
-    return false if markers.size != 3
-    markers.min == markers.max
+  def three_identical_markers?(markers)
+    markers.delete(Square::INITIAL_MARKER)
+    markers.uniq.size == 1 && markers.size == 3
   end
 end
 
@@ -188,7 +197,12 @@ class Game
   end
 
   def computer_moves
-    board[board.unmarked_keys.sample] = computer.marker
+    board[computer_strategy] = computer.marker
+  end
+
+  def computer_strategy
+    # return best_move if find_opportunity(HUMAN_MARKER)
+    board.unmarked_keys.sample
   end
 
   def joinor(array, separator = ', ', word = 'or')
