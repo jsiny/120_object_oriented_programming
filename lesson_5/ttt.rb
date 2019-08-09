@@ -66,7 +66,7 @@ class Board
     line = find_strategic_square(Game::COMPUTER_MARKER)
     line ||= find_strategic_square(Game::HUMAN_MARKER)
     line ||= [@center]
-    line.nil? ? nil : (unmarked_keys & line).first
+    line.nil? ? nil : (unmarked_keys & line).sample
   end
 
   private
@@ -136,7 +136,7 @@ end
 class Game
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
-  FIRST_MOVE = HUMAN_MARKER
+  # FIRST_MOVE = HUMAN_MARKER # Choices: COMPUTER_MARKER, HUMAN_MARKER, CHOOSE
   NUMBER_OF_WINS = 2
 
   attr_reader :board, :human, :computer
@@ -145,17 +145,27 @@ class Game
     @board = Board.new
     @human = Human.new
     @computer = Computer.new
-    @current_player = FIRST_MOVE
+    @first_move = 'human' # choices: 'human', 'choose', 'computer'
+    @current_marker = ''
   end
 
   def play
     display_welcome_message
+    huh = gets.chomp.to_s
+    match_loop
+    display_goodbye_message
+  end
 
+  def play_round
+    display_board
+    players_moves
+    record_score
+    display_result
+  end
+
+  def match_loop
     loop do
-      display_board
-      players_moves
-      record_score
-      display_result
+      play_round
 
       if grand_winner?
         display_grand_winner
@@ -167,8 +177,6 @@ class Game
       reset
       display_play_again_message
     end
-
-    display_goodbye_message
   end
 
   private
@@ -182,16 +190,16 @@ class Game
   end
 
   def human_turn?
-    @current_player == human.marker
+    @current_marker == human.marker
   end
 
   def current_player_moves
     if human_turn?
       human_moves
-      @current_player = computer.marker
+      @current_marker = computer.marker
     else
       computer_moves
-      @current_player = human.marker
+      @current_marker = human.marker
     end
   end
 
@@ -290,7 +298,7 @@ class Game
 
   def reset
     board.reset
-    @current_player = FIRST_MOVE
+    @current_marker = ''
     clear
   end
 
