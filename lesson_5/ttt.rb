@@ -1,4 +1,4 @@
-# require 'pry'
+require 'pry'
 
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
@@ -47,7 +47,6 @@ class Board
     !!winning_marker
   end
 
-  # returns winning marker or returns nil
   def winning_marker
     WINNING_LINES.each do |line|
       markers = get_markers_at(line)
@@ -136,7 +135,6 @@ end
 class Game
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
-  # FIRST_MOVE = HUMAN_MARKER # Choices: COMPUTER_MARKER, HUMAN_MARKER, CHOOSE
   NUMBER_OF_WINS = 2
 
   attr_reader :board, :human, :computer
@@ -145,15 +143,46 @@ class Game
     @board = Board.new
     @human = Human.new
     @computer = Computer.new
-    @first_move = 'human' # choices: 'human', 'choose', 'computer'
+    @first_move = :choose # choices: :choose, :computer, :human
     @current_marker = ''
   end
 
   def play
     display_welcome_message
-    huh = gets.chomp.to_s
+    setup_game
     match_loop
     display_goodbye_message
+  end
+
+  def setup_game
+    set_first_move
+    set_current_marker
+  end
+
+  def set_first_move
+    ask_first_move if @first_move == :choose
+  end
+
+  def ask_first_move
+    answer = ''
+    loop do
+      puts "Who should start the game: (y)ou or the (c)omputer?"
+      answer = gets.chomp.downcase
+      break if %w(y c).include?(answer)
+      puts "Sorry, you must type 'y' for you or 'c' for computer"
+    end
+
+    @first_move = case answer
+                  when 'y' then :human
+                  when 'c' then :computer
+                  end
+  end
+
+  def set_current_marker
+    @current_marker = case @first_move
+                      when :human    then human.marker
+                      when :computer then computer.marker
+                      end
   end
 
   def play_round
@@ -298,7 +327,7 @@ class Game
 
   def reset
     board.reset
-    @current_marker = ''
+    set_current_marker
     clear
   end
 
