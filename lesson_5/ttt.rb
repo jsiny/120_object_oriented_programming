@@ -1,8 +1,6 @@
 require 'pry'
 
 class Board
-  # attr_reader :center
-
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # colons
                   [[1, 5, 9], [3, 5, 7]]              # diagonals
@@ -109,10 +107,10 @@ class Player
   attr_reader :score, :name
   attr_accessor :marker
 
-  def initialize(name)
+  def initialize
     @marker = nil
     @score = 0
-    @name = name
+    @name = nil
   end
 
   def add_point
@@ -121,14 +119,21 @@ class Player
 end
 
 class Human < Player
-  def initialize
-    super("Juliette")
+  def choose_name
+    name = ''
+    loop do
+      puts "What's your name?"
+      name = gets.chomp.delete('^a-zA-Z ').strip.capitalize
+      break unless name.empty?
+      puts "Sorry, you must enter a valid name"
+    end
+    @name = name
   end
 end
 
 class Computer < Player
-  def initialize
-    super("Wall-E")
+  def choose_name
+    @name = %w(Wall-E HAL9000 Bender Terminator R2D2 AVA Baymax).sample
   end
 end
 
@@ -154,53 +159,7 @@ class Game
     display_goodbye_message
   end
 
-  def setup_game
-    set_first_move
-    set_markers
-    set_current_marker
-  end
-
-  def set_first_move
-    choose_first_move if @first_move == :choose
-  end
-
-  def choose_first_move
-    answer = ''
-    loop do
-      puts "Who should start the game: (y)ou or the (c)omputer?"
-      answer = gets.chomp.downcase
-      break if %w(y c).include?(answer)
-      puts "Sorry, you must type 'y' for you or 'c' for computer"
-    end
-
-    @first_move = case answer
-                  when 'y' then :human
-                  when 'c' then :computer
-                  end
-  end
-
-  def set_markers
-    human.marker = choose_marker
-    computer.marker = (human.marker == MARKER_1 ? MARKER_2 : MARKER_1)
-  end
-
-  def choose_marker
-    choice = ''
-    loop do
-      puts "Do you want to play with a marker '#{MARKER_1}' or '#{MARKER_2}'?"
-      choice = gets.chomp.upcase
-      break if [MARKER_1, MARKER_2].include?(choice)
-      puts "Sorry, you must type '#{MARKER_1}' or '#{MARKER_2}'"
-    end
-    choice
-  end
-
-  def set_current_marker
-    @current_marker = case @first_move
-                      when :human    then human.marker
-                      when :computer then computer.marker
-                      end
-  end
+  private
 
   def play_round
     display_board
@@ -225,7 +184,61 @@ class Game
     end
   end
 
-  private
+  def setup_game
+    set_names
+    set_first_move
+    set_markers
+    set_current_marker
+  end
+
+  def set_names
+    human.choose_name
+    computer.choose_name
+  end
+
+  def set_first_move
+    choose_first_move if @first_move == :choose
+  end
+
+  def choose_first_move
+    puts ''
+    answer = ''
+    loop do
+      puts "Who should start the game: (y)ou or the (c)omputer?"
+      answer = gets.chomp.downcase
+      break if %w(y c).include?(answer)
+      puts "Sorry, you must type 'y' for you or 'c' for computer"
+    end
+
+    @first_move = case answer
+                  when 'y' then :human
+                  when 'c' then :computer
+                  end
+  end
+
+  def set_markers
+    human.marker = choose_marker
+    computer.marker = (human.marker == MARKER_1 ? MARKER_2 : MARKER_1)
+  end
+
+  def choose_marker
+    puts ''
+    choice = ''
+    loop do
+      puts "Do you want to play with a marker '#{MARKER_1}' or '#{MARKER_2}'?"
+      choice = gets.chomp.upcase
+      break if [MARKER_1, MARKER_2].include?(choice)
+      puts "Sorry, you must type '#{MARKER_1}' or '#{MARKER_2}'"
+    end
+    choice
+  end
+
+  def set_current_marker
+    @current_marker = case @first_move
+                      when :human    then human.marker
+                      when :computer then computer.marker
+                      end
+  end
 
   def players_moves
     loop do
@@ -286,8 +299,8 @@ class Game
     clear_screen_and_display_board
 
     case board.winning_marker
-    when human.marker then puts 'You won!'
-    when computer.marker then puts 'Computer won!'
+    when human.marker     then puts "#{human.name} has won!"
+    when computer.marker  then puts "#{computer.name} has won!"
     else puts "It's a tie!"
     end
 
@@ -297,7 +310,7 @@ class Game
   def display_score
     puts ""
     puts "SCORE:"
-    puts "Player: #{human.score} - Computer: #{computer.score}"
+    puts "#{human.name}: #{human.score} - #{computer.name}: #{computer.score}"
     puts ""
   end
 
@@ -340,7 +353,7 @@ class Game
   end
 
   def display_board
-    puts "You're #{human.marker}. Computer is #{computer.marker}."
+    puts "You're #{human.marker}. #{computer.name} is #{computer.marker}."
     puts ""
     board.draw
     puts ""
