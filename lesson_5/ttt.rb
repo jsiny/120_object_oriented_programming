@@ -118,7 +118,6 @@ class Game
   end
 
   def play
-    clear
     display_welcome_message
 
     loop do
@@ -126,12 +125,13 @@ class Game
       players_moves
       record_score
       display_result
-      sleep 2
-      # break unless play_again?
+
       if grand_winner?
         display_grand_winner
         break
       end
+
+      break unless play_again?
 
       reset
       display_play_again_message
@@ -214,7 +214,7 @@ class Game
   end
 
   def display_grand_winner
-    puts "#{grand_winner?} has won the game!!"
+    puts "#{grand_winner?} is the Grand Winner!"
   end
 
   def play_again?
@@ -229,6 +229,7 @@ class Game
   end
 
   def display_welcome_message
+    clear
     puts 'Welcome to Tic Tac toe!'
     puts "The first player who reaches #{NUMBER_OF_WINS} wins becomes the "\
       "Grand winner"
