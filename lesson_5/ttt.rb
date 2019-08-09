@@ -182,16 +182,16 @@ class Game
   end
 
   def human_turn?
-    @current_player == HUMAN_MARKER
+    @current_player == human.marker
   end
 
   def current_player_moves
     if human_turn?
       human_moves
-      @current_player = COMPUTER_MARKER
+      @current_player = computer.marker
     else
       computer_moves
-      @current_player = HUMAN_MARKER
+      @current_player = human.marker
     end
   end
 
@@ -219,8 +219,8 @@ class Game
 
   def record_score
     case board.winning_marker
-    when HUMAN_MARKER     then human.add_point
-    when COMPUTER_MARKER  then computer.add_point
+    when human.marker     then human.add_point
+    when computer.marker  then computer.add_point
     end
   end
 
