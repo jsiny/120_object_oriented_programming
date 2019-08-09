@@ -1,4 +1,4 @@
-require 'pry'
+# require 'pry'
 
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
@@ -10,6 +10,7 @@ class Board
     reset
   end
 
+  # rubocop:disable Metrics/AbcSize
   def draw
     puts "     |     |"
     puts "  #{@squares[1]}  |  #{@squares[2]}  |  #{@squares[3]}"
@@ -23,6 +24,7 @@ class Board
     puts "  #{@squares[7]}  |  #{@squares[8]}  |  #{@squares[9]}"
     puts "     |     |"
   end
+  # rubocop:enable Metrics/AbcSize
 
   def reset
     (1..9).each { |key| @squares[key] = Square.new }
@@ -66,6 +68,7 @@ end
 
 class Square
   INITIAL_MARKER = ' '
+
   attr_accessor :marker
 
   def initialize
@@ -96,12 +99,15 @@ end
 class Game
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
+  FIRST_MOVE = HUMAN_MARKER
+
   attr_reader :board, :human, :computer
 
   def initialize
     @board = Board.new
     @human = Player.new(HUMAN_MARKER)
     @computer = Player.new(COMPUTER_MARKER)
+    @current_player = FIRST_MOVE
   end
 
   def play
@@ -112,13 +118,9 @@ class Game
       display_board
 
       loop do
-        human_moves
+        current_player_moves
         break if board.someone_won? || board.full?
-
-        computer_moves
-        break if board.someone_won? || board.full?
-
-        clear_screen_and_display_board
+        clear_screen_and_display_board if human_turn?
       end
       display_result
       break unless play_again?
@@ -129,8 +131,24 @@ class Game
     display_goodbye_message
   end
 
+  private
+
+  def human_turn?
+    @current_player == HUMAN_MARKER
+  end
+
+  def current_player_moves
+    if human_turn?
+      human_moves
+      @current_player = COMPUTER_MARKER
+    else
+      computer_moves
+      @current_player = HUMAN_MARKER
+    end
+  end
+
   def human_moves
-    puts "Choose a square (#{board.unmarked_keys.join(', ')}): "
+    puts "Choose a square (#{joinor(board.unmarked_keys)}): "
     square = ''
     loop do
       square = gets.chomp.to_i
@@ -142,6 +160,11 @@ class Game
 
   def computer_moves
     board[board.unmarked_keys.sample] = computer.marker
+  end
+
+  def joinor(array, separator = ', ', word = 'or')
+    return array.join(" #{word} ") if array.size < 3
+    array[0...-1].join(separator) + "#{separator + word} #{array[-1]}"
   end
 
   def display_result
@@ -156,7 +179,7 @@ class Game
 
   def play_again?
     answer = ''
-    loop do 
+    loop do
       puts "Would you like to play again? (y/n)"
       answer = gets.chomp.downcase
       break if %(y n).include? answer
@@ -188,6 +211,7 @@ class Game
 
   def reset
     board.reset
+    @current_player = FIRST_MOVE
     clear
   end
 
