@@ -50,7 +50,9 @@ class Board
   def winning_marker
     WINNING_LINES.each do |line|
       markers = get_markers_at(line)
-      return markers.first if identical_markers?(3, markers)
+      [Game::HUMAN_MARKER, Game::COMPUTER_MARKER].each do |marker|
+        return marker if markers.count(marker) == 3
+      end
     end
     nil
   end
@@ -67,11 +69,20 @@ class Board
     nil
   end
 
+  def move_to_win(marker)
+    line = find_opportunity
+    # need to find opportunity for itself or against the human
+  end
+
   private
 
   def identical_markers?(number, markers)
     markers.delete(Square::INITIAL_MARKER)
     markers.uniq.size == 1 && markers.size == number
+  end
+
+  def marker_type
+
   end
 end
 
@@ -214,7 +225,10 @@ class Game
   end
 
   def record_score
-    board.winning_marker == HUMAN_MARKER ? human.add_point : computer.add_point
+    case board.winning_marker
+    when HUMAN_MARKER     then human.add_point 
+    when COMPUTER_MARKER  then computer.add_point
+    end
   end
 
   def display_result
