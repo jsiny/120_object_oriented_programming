@@ -2,7 +2,16 @@
 
 require 'pry'
 
+module Syntax
+  def joinor(array, separator = ', ', word = ' or ')
+    return array.join(word.to_s) if array.size < 3
+    array[0...-1].join(separator) + word.to_s + array[-1].to_s
+  end
+end
+
 class Board
+  attr_accessor :size
+
   POSSIBLE_GRID_SIZES = [3, 5, 7]
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # colons
@@ -10,6 +19,7 @@ class Board
 
   def initialize
     @squares = {}
+    @size = nil
     @center = 5
     reset
   end
@@ -144,6 +154,8 @@ class Player
 end
 
 class Human < Player
+  include Syntax
+
   def choose_name
     name = ''
     loop do
@@ -160,10 +172,10 @@ class Human < Player
     choice = ''
     markers = [Game::MARKER_1, Game::MARKER_2]
     loop do
-      puts "Do you want to play with a marker '#{markers.join("' or '")}'?"
+      puts "Do you want to play with a marker '#{joinor(markers, '', "' or '")}'?"
       choice = gets.chomp.upcase
       break if markers.include?(choice)
-      puts "Sorry, you must type '#{markers.join("' or '")}'"
+      puts "Sorry, you must type '#{joinor(markers)}'"
     end
     @marker = choice
   end
@@ -179,6 +191,18 @@ class Human < Player
     end
     answer
   end
+
+  def choose_grid_size
+    puts ''
+    size = ''
+    loop do 
+      puts "Which grid size do you want: #{joinor(Board::POSSIBLE_GRID_SIZES)}?"
+      size = gets.chomp.to_i
+      break if Board::POSSIBLE_GRID_SIZES.include?(size)
+      puts "Sorry, you must type #{joinor(Board::POSSIBLE_GRID_SIZES)}"
+    end
+    size
+  end
 end
 
 class Computer < Player
@@ -188,6 +212,8 @@ class Computer < Player
 end
 
 class Game
+  include Syntax
+
   MARKER_1 = 'X'
   MARKER_2 = 'O'
   NUMBER_OF_WINS = 2
@@ -237,6 +263,7 @@ class Game
   def setup_game
     set_names
     set_first_move
+    set_grid_size
     set_markers
     set_current_marker
   end
@@ -253,6 +280,10 @@ class Game
                   when 'y' then :human
                   when 'c' then :computer
                   end
+  end
+
+  def set_grid_size
+    board.size = human.choose_grid_size
   end
 
   def set_markers
@@ -308,11 +339,6 @@ class Game
 
     move = best_moves.sample
     board[move] = computer.marker
-  end
-
-  def joinor(array, separator = ', ', word = 'or')
-    return array.join(" #{word} ") if array.size < 3
-    array[0...-1].join(separator) + "#{separator + word} #{array[-1]}"
   end
 
   def record_score
