@@ -3,25 +3,32 @@
 require 'pry'
 
 module Syntax
-  def joinor(array, separator = ', ', word = ' or ')
+  def joinor(array, word = ' or ')
     return array.join(word.to_s) if array.size < 3
-    array[0...-1].join(separator) + word.to_s + array[-1].to_s
+    array[0...-1].join(', ') + word.to_s + array[-1].to_s
   end
 end
 
 class Board
-  attr_accessor :size
+  attr_reader :size
 
   POSSIBLE_GRID_SIZES = [3, 5, 7]
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # colons
                   [[1, 5, 9], [3, 5, 7]]              # diagonals
 
-  def initialize
+  def initialize(size)
+    @size = size
+    @center = size**2 / 2 + 1
     @squares = {}
-    @size = nil
-    @center = 5
     reset
+  end
+
+  def draw
+    case size
+    when 3 then draw_size_3
+    when 5 then draw_size_5
+    end
   end
 
   # rubocop:disable Metrics/AbcSize
@@ -49,21 +56,21 @@ class Board
     puts "     |     |     |     |"
     puts "-----+-----+-----+-----+-----"
     puts "     |     |     |     |"
-    puts "  #{@squares[11]}   |  #{@squares[12]}   |  #{@squares[13]}   |  #{@squares[14]}   |  #{@squares[15]}"
+    puts "  #{@squares[11]}  |  #{@squares[12]}  |  #{@squares[13]}  |  #{@squares[14]}  |  #{@squares[15]}"
     puts "     |     |     |     |"
     puts "-----+-----+-----+-----+-----"
     puts "     |     |     |     |"
-    puts "  #{@squares[16]}   |  #{@squares[17]}   |  #{@squares[18]}   |  #{@squares[19]}   |  #{@squares[20]}"
+    puts "  #{@squares[16]}  |  #{@squares[17]}  |  #{@squares[18]}  |  #{@squares[19]}  |  #{@squares[20]}"
     puts "     |     |     |     |"
     puts "-----+-----+-----+-----+-----"
     puts "     |     |     |     |"
-    puts "  #{@squares[21]}   |  #{@squares[22]}   |  #{@squares[23]}   |  #{@squares[24]}   |  #{@squares[25]}"
+    puts "  #{@squares[21]}  |  #{@squares[22]}  |  #{@squares[23]}  |  #{@squares[24]}  |  #{@squares[25]}"
     puts "     |     |     |     |"
   end
   # rubocop:enable Metrics/AbcSize
 
   def reset
-    (1..9).each { |key| @squares[key] = Square.new }
+    (1..size**2).each { |key| @squares[key] = Square.new }
   end
 
   def []=(key, marker)
@@ -172,10 +179,10 @@ class Human < Player
     choice = ''
     markers = [Game::MARKER_1, Game::MARKER_2]
     loop do
-      puts "Do you want to play with a marker '#{joinor(markers, '', "' or '")}'?"
+      puts "Do you want to play with a marker '#{joinor(markers, "' or '")}'?"
       choice = gets.chomp.upcase
       break if markers.include?(choice)
-      puts "Sorry, you must type '#{joinor(markers)}'"
+      puts "Sorry, you must type '#{joinor(markers, "' or '")}'"
     end
     @marker = choice
   end
@@ -195,7 +202,7 @@ class Human < Player
   def choose_grid_size
     puts ''
     size = ''
-    loop do 
+    loop do
       puts "Which grid size do you want: #{joinor(Board::POSSIBLE_GRID_SIZES)}?"
       size = gets.chomp.to_i
       break if Board::POSSIBLE_GRID_SIZES.include?(size)
@@ -221,7 +228,6 @@ class Game
   attr_reader :board, :human, :computer
 
   def initialize
-    @board = Board.new
     @human = Human.new
     @computer = Computer.new
     @first_move = :choose # choices: :choose, :computer, :human
@@ -263,7 +269,7 @@ class Game
   def setup_game
     set_names
     set_first_move
-    set_grid_size
+    set_board
     set_markers
     set_current_marker
   end
@@ -282,8 +288,9 @@ class Game
                   end
   end
 
-  def set_grid_size
-    board.size = human.choose_grid_size
+  def set_board
+    size = human.choose_grid_size
+    @board = Board.new(size)
   end
 
   def set_markers
@@ -408,7 +415,7 @@ class Game
   def display_board
     puts "You're #{human.marker}. #{computer.name} is #{computer.marker}."
     puts ""
-    board.draw_size_5
+    board.draw
     puts ""
   end
 
