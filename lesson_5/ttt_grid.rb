@@ -1,3 +1,4 @@
+# Module dedicated to making English sentences more 'fluid'
 module Syntax
   def joinor(array, word = ' or ')
     return array.join(word.to_s) if array.size < 3
@@ -5,6 +6,7 @@ module Syntax
   end
 end
 
+# Class that tracks all states of the playing board
 class Board
   attr_reader :size, :winning_lines
 
@@ -125,7 +127,7 @@ class Board
     ary2 = 1.step(size**2, size + 1).to_a
     @winning_lines += [ary1] + [ary2]
   end
-  
+
   def get_markers_at(line)
     @squares.values_at(*line).map(&:marker)
   end
@@ -136,6 +138,7 @@ class Board
   end
 end
 
+# The squares within the board
 class Square
   INITIAL_MARKER = ' '
 
@@ -158,6 +161,7 @@ class Square
   end
 end
 
+# Player class, mostly dedicated to keeping track of the scores
 class Player
   attr_reader :score, :name
   attr_accessor :marker
@@ -173,6 +177,7 @@ class Player
   end
 end
 
+# Human class, with choices
 class Human < Player
   include Syntax
 
@@ -182,7 +187,7 @@ class Human < Player
       puts "What's your name?"
       name = gets.chomp.delete('^a-zA-Z ').strip.capitalize
       break unless name.empty?
-      puts "Sorry, you must enter a valid name"
+      puts 'Sorry, you must enter a valid name'
     end
     @name = name
   end
@@ -204,7 +209,7 @@ class Human < Player
     puts ''
     answer = ''
     loop do
-      puts "Who should start the game: (y)ou or the (c)omputer?"
+      puts 'Who should start the game: (y)ou or the (c)omputer?'
       answer = gets.chomp.downcase
       break if %w(y c).include?(answer)
       puts "Sorry, you must type 'y' for you or 'c' for computer"
@@ -225,12 +230,14 @@ class Human < Player
   end
 end
 
+# Computer class, to choose the computer name
 class Computer < Player
   def choose_name
     @name = %w(Wall-E HAL9000 Bender Terminator R2D2 AVA Baymax).sample
   end
 end
 
+# Game loop and mechanisms
 class Game
   include Syntax
 
@@ -341,7 +348,7 @@ class Game
   end
 
   def human_moves
-    puts "Choose a square: "
+    puts 'Choose a square: '
     display_available_squares
     square = ''
     loop do
@@ -397,15 +404,15 @@ class Game
   end
 
   def display_score
-    puts ""
-    puts "SCORE:"
+    puts ''
+    puts 'SCORE:'
     puts "#{human.name}: #{human.score} - #{computer.name}: #{computer.score}"
-    puts ""
+    puts ''
   end
 
   def grand_winner?
-    return human.name if human.score >= NUMBER_OF_WINS
-    return computer.name if computer.score >= NUMBER_OF_WINS
+    return human.name     if human.score    >= NUMBER_OF_WINS
+    return computer.name  if computer.score >= NUMBER_OF_WINS
     nil
   end
 
@@ -416,10 +423,10 @@ class Game
   def play_again?
     answer = ''
     loop do
-      puts "Would you like to play again? (y/n)"
+      puts 'Would you like to play again? (y/n)'
       answer = gets.chomp.downcase
       break if %(y n).include? answer
-      puts "Sorry, must be y or n"
+      puts 'Sorry, must be y or n'
     end
     answer == 'y'
   end
@@ -428,7 +435,7 @@ class Game
     clear
     puts 'Welcome to Tic Tac toe!'
     puts "The first player who reaches #{NUMBER_OF_WINS} wins becomes the "\
-      "Grand winner"
+      'Grand winner'
     puts ''
   end
 
@@ -444,9 +451,9 @@ class Game
   def display_board
     puts "You're #{human.marker}. #{computer.name} is #{computer.marker}."
     puts "You must align #{board.size} markers."
-    puts ""
+    puts ''
     board.draw
-    puts ""
+    puts ''
   end
 
   def reset
