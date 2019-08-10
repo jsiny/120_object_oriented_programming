@@ -10,18 +10,16 @@ module Syntax
 end
 
 class Board
-  attr_reader :size
+  attr_reader :size, :winning_lines
 
   POSSIBLE_GRID_SIZES = [3, 5, 7]
-  WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
-                  [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # colons
-                  [[1, 5, 9], [3, 5, 7]]              # diagonals
 
   def initialize(size)
     @size = size
     @center = size**2 / 2 + 1
     @squares = {}
     reset
+    set_winning_lines
   end
 
   def draw
@@ -29,6 +27,31 @@ class Board
     when 3 then draw_size_3
     when 5 then draw_size_5
     end
+  end
+
+  def set_winning_lines
+    @winning_lines = []
+    set_winning_rows
+    set_winning_columns
+    set_winning_diagonals
+  end
+
+  def set_winning_rows
+    @winning_lines += (1..size**2).to_a.each_slice(size).to_a
+  end
+
+  def set_winning_columns
+    array = []
+    (1..size).each do |n|
+      n.step(by: size, to: size**2) { |i| array << i }
+    end
+    @winning_lines += array.each_slice(size).to_a
+  end
+
+  def set_winning_diagonals
+    ary1 = size.step(size**2, size - 1).to_a[0...-1]
+    ary2 = 1.step(size**2, size + 1).to_a
+    @winning_lines += [ary1] + [ary2]
   end
 
   # rubocop:disable Metrics/AbcSize
@@ -90,7 +113,7 @@ class Board
   end
 
   def winning_marker
-    WINNING_LINES.each do |line|
+    winning_lines.each do |line|
       markers = get_markers_at(line)
       [Game::MARKER_1, Game::MARKER_2].each do |marker|
         return marker if markers.count(marker) == 3
@@ -104,7 +127,7 @@ class Board
   end
 
   def find_strategic_square(marker)
-    WINNING_LINES.each do |line|
+    winning_lines.each do |line|
       markers = get_markers_at(line)
       return line & unmarked_keys if identical_markers?(2, markers, marker)
     end
