@@ -116,7 +116,7 @@ class Board
     winning_lines.each do |line|
       markers = get_markers_at(line)
       [Game::MARKER_1, Game::MARKER_2].each do |marker|
-        return marker if markers.count(marker) == 3
+        return marker if markers.count(marker) == size
       end
     end
     nil
@@ -126,10 +126,12 @@ class Board
     @squares.values_at(*line).map(&:marker)
   end
 
-  def find_strategic_square(marker)
+  def find_strategic_square(player_marker)
     winning_lines.each do |line|
       markers = get_markers_at(line)
-      return line & unmarked_keys if identical_markers?(2, markers, marker)
+      if identical_markers?(size - 1, markers, player_marker)
+        return line & unmarked_keys
+      end
     end
     nil
   end
@@ -437,6 +439,7 @@ class Game
 
   def display_board
     puts "You're #{human.marker}. #{computer.name} is #{computer.marker}."
+    puts "You must align #{board.size} markers."
     puts ""
     board.draw
     puts ""
