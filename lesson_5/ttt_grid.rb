@@ -12,7 +12,8 @@ end
 class Board
   attr_reader :size, :winning_lines
 
-  POSSIBLE_GRID_SIZES = [3, 5, 7]
+  POSSIBLE_GRID_SIZES = [3, 5, 7, 9]
+  WIDTH = 5
 
   def initialize(size)
     @size = size
@@ -20,13 +21,6 @@ class Board
     @squares = {}
     reset
     set_winning_lines
-  end
-
-  def draw
-    case size
-    when 3 then draw_size_3
-    when 5 then draw_size_5
-    end
   end
 
   def set_winning_lines
@@ -54,43 +48,40 @@ class Board
     @winning_lines += [ary1] + [ary2]
   end
 
-  # rubocop:disable Metrics/AbcSize
-  def draw_size_3
-    puts "     |     |"
-    puts "  #{@squares[1]}  |  #{@squares[2]}  |  #{@squares[3]}"
-    puts "     |     |"
-    puts "-----+-----+-----"
-    puts "     |     |"
-    puts "  #{@squares[4]}  |  #{@squares[5]}  |  #{@squares[6]}"
-    puts "     |     |"
-    puts "-----+-----+-----"
-    puts "     |     |"
-    puts "  #{@squares[7]}  |  #{@squares[8]}  |  #{@squares[9]}"
-    puts "     |     |"
+  def draw
+    @squares_copy = @squares.values
+    draw_outer_squares
+    (size - 1).times { draw_inner_squares }
   end
 
-  def draw_size_5
-    puts "     |     |     |     |"
-    puts "  #{@squares[1]}  |  #{@squares[2]}  |  #{@squares[3]}  |  #{@squares[4]}  |  #{@squares[5]}"
-    puts "     |     |     |     |"
-    puts "-----+-----+-----+-----+-----"
-    puts "     |     |     |     |"
-    puts "  #{@squares[6]}  |  #{@squares[7]}  |  #{@squares[8]}  |  #{@squares[9]}  |  #{@squares[10]}"
-    puts "     |     |     |     |"
-    puts "-----+-----+-----+-----+-----"
-    puts "     |     |     |     |"
-    puts "  #{@squares[11]}  |  #{@squares[12]}  |  #{@squares[13]}  |  #{@squares[14]}  |  #{@squares[15]}"
-    puts "     |     |     |     |"
-    puts "-----+-----+-----+-----+-----"
-    puts "     |     |     |     |"
-    puts "  #{@squares[16]}  |  #{@squares[17]}  |  #{@squares[18]}  |  #{@squares[19]}  |  #{@squares[20]}"
-    puts "     |     |     |     |"
-    puts "-----+-----+-----+-----+-----"
-    puts "     |     |     |     |"
-    puts "  #{@squares[21]}  |  #{@squares[22]}  |  #{@squares[23]}  |  #{@squares[24]}  |  #{@squares[25]}"
-    puts "     |     |     |     |"
+  def draw_outer_squares
+    draw_empty_line
+    draw_square_line
+    draw_empty_line
   end
-  # rubocop:enable Metrics/AbcSize
+
+  def draw_inner_squares
+    draw_separator
+    draw_outer_squares
+  end
+
+  def draw_empty_line
+    puts((' ' * WIDTH + '|') * (size - 1))
+  end
+
+  def draw_separator
+    puts(('-' * WIDTH + '+') * (size - 1) + '-' * WIDTH)
+  end
+
+  def draw_square_line
+    margin = ' ' * (WIDTH / 2)
+
+    (size - 1).times do
+      print margin + @squares_copy.shift.marker + margin + '|'
+    end
+
+    puts margin + @squares_copy.shift.marker
+  end
 
   def reset
     (1..size**2).each { |key| @squares[key] = Square.new }
