@@ -3,6 +3,7 @@
 require 'pry'
 
 class Board
+  POSSIBLE_GRID_SIZES = [3, 5, 7]
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # colons
                   [[1, 5, 9], [3, 5, 7]]              # diagonals
@@ -14,7 +15,7 @@ class Board
   end
 
   # rubocop:disable Metrics/AbcSize
-  def draw
+  def draw_size_3
     puts "     |     |"
     puts "  #{@squares[1]}  |  #{@squares[2]}  |  #{@squares[3]}"
     puts "     |     |"
@@ -26,6 +27,28 @@ class Board
     puts "     |     |"
     puts "  #{@squares[7]}  |  #{@squares[8]}  |  #{@squares[9]}"
     puts "     |     |"
+  end
+
+  def draw_size_5
+    puts "     |     |     |     |"
+    puts "  #{@squares[1]}  |  #{@squares[2]}  |  #{@squares[3]}  |  #{@squares[4]}  |  #{@squares[5]}"
+    puts "     |     |     |     |"
+    puts "-----+-----+-----+-----+-----"
+    puts "     |     |     |     |"
+    puts "  #{@squares[6]}  |  #{@squares[7]}  |  #{@squares[8]}  |  #{@squares[9]}  |  #{@squares[10]}"
+    puts "     |     |     |     |"
+    puts "-----+-----+-----+-----+-----"
+    puts "     |     |     |     |"
+    puts "  #{@squares[11]}   |  #{@squares[12]}   |  #{@squares[13]}   |  #{@squares[14]}   |  #{@squares[15]}"
+    puts "     |     |     |     |"
+    puts "-----+-----+-----+-----+-----"
+    puts "     |     |     |     |"
+    puts "  #{@squares[16]}   |  #{@squares[17]}   |  #{@squares[18]}   |  #{@squares[19]}   |  #{@squares[20]}"
+    puts "     |     |     |     |"
+    puts "-----+-----+-----+-----+-----"
+    puts "     |     |     |     |"
+    puts "  #{@squares[21]}   |  #{@squares[22]}   |  #{@squares[23]}   |  #{@squares[24]}   |  #{@squares[25]}"
+    puts "     |     |     |     |"
   end
   # rubocop:enable Metrics/AbcSize
 
@@ -144,6 +167,18 @@ class Human < Player
     end
     @marker = choice
   end
+
+  def choose_first_move
+    puts ''
+    answer = ''
+    loop do
+      puts "Who should start the game: (y)ou or the (c)omputer?"
+      answer = gets.chomp.downcase
+      break if %w(y c).include?(answer)
+      puts "Sorry, you must type 'y' for you or 'c' for computer"
+    end
+    answer
+  end
 end
 
 class Computer < Player
@@ -212,19 +247,8 @@ class Game
   end
 
   def set_first_move
-    choose_first_move if @first_move == :choose
-  end
-
-  def choose_first_move
-    puts ''
-    answer = ''
-    loop do
-      puts "Who should start the game: (y)ou or the (c)omputer?"
-      answer = gets.chomp.downcase
-      break if %w(y c).include?(answer)
-      puts "Sorry, you must type 'y' for you or 'c' for computer"
-    end
-
+    return @first_move unless @first_move == :choose
+    answer = human.choose_first_move
     @first_move = case answer
                   when 'y' then :human
                   when 'c' then :computer
@@ -358,7 +382,7 @@ class Game
   def display_board
     puts "You're #{human.marker}. #{computer.name} is #{computer.marker}."
     puts ""
-    board.draw
+    board.draw_size_5
     puts ""
   end
 

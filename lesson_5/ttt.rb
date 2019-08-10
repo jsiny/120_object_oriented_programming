@@ -142,6 +142,18 @@ class Human < Player
     end
     @marker = choice
   end
+
+  def choose_first_move
+    puts ''
+    answer = ''
+    loop do
+      puts "Who should start the game: (y)ou or the (c)omputer?"
+      answer = gets.chomp.downcase
+      break if %w(y c).include?(answer)
+      puts "Sorry, you must type 'y' for you or 'c' for computer"
+    end
+    answer
+  end
 end
 
 class Computer < Player
@@ -210,19 +222,8 @@ class Game
   end
 
   def set_first_move
-    choose_first_move if @first_move == :choose
-  end
-
-  def choose_first_move
-    puts ''
-    answer = ''
-    loop do
-      puts "Who should start the game: (y)ou or the (c)omputer?"
-      answer = gets.chomp.downcase
-      break if %w(y c).include?(answer)
-      puts "Sorry, you must type 'y' for you or 'c' for computer"
-    end
-
+    return @first_move unless @first_move == :choose
+    answer = human.choose_first_move
     @first_move = case answer
                   when 'y' then :human
                   when 'c' then :computer
