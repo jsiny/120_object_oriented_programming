@@ -1,3 +1,5 @@
+# Version with various sizes of grid
+
 require 'pry'
 
 class Board
