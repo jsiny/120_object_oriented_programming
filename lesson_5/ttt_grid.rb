@@ -158,7 +158,7 @@ class Square
   end
 
   def to_s
-    @marker
+    marker.to_s
   end
 
   def unmarked?
