@@ -129,6 +129,19 @@ class Human < Player
     end
     @name = name
   end
+
+  def choose_marker
+    puts ''
+    choice = ''
+    loop do
+      puts "Do you want to play with a marker '#{Game::MARKER_1}' or "\
+        "'#{Game::MARKER_2}'?"
+      choice = gets.chomp.upcase
+      break if [Game::MARKER_1, Game::MARKER_2].include?(choice)
+      puts "Sorry, you must type '#{Game::MARKER_1}' or '#{Game::MARKER_2}'"
+    end
+    @marker = choice
+  end
 end
 
 class Computer < Player
@@ -217,20 +230,8 @@ class Game
   end
 
   def set_markers
-    human.marker = choose_marker
+    human.choose_marker
     computer.marker = (human.marker == MARKER_1 ? MARKER_2 : MARKER_1)
-  end
-
-  def choose_marker
-    puts ''
-    choice = ''
-    loop do
-      puts "Do you want to play with a marker '#{MARKER_1}' or '#{MARKER_2}'?"
-      choice = gets.chomp.upcase
-      break if [MARKER_1, MARKER_2].include?(choice)
-      puts "Sorry, you must type '#{MARKER_1}' or '#{MARKER_2}'"
-    end
-    choice
   end
 
   def set_current_marker
