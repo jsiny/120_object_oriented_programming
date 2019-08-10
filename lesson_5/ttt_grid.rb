@@ -108,6 +108,15 @@ class Board
     unmarked_keys.empty?
   end
 
+  def unwinnable?
+    winning_lines.each do |line|
+      if (get_markers_at(line).uniq - [Square::INITIAL_MARKER]).size <= 1
+        return false
+      end
+    end
+    true
+  end
+
   def someone_won?
     !!winning_marker
   end
@@ -333,7 +342,7 @@ class Game
   def players_moves
     loop do
       current_player_moves
-      break if board.someone_won? || board.full?
+      break if board.someone_won? || board.full? || board.unwinnable?
       clear_screen_and_display_board if human_turn?
     end
   end
@@ -397,10 +406,15 @@ class Game
     case board.winning_marker
     when human.marker     then puts "#{human.name} has won!"
     when computer.marker  then puts "#{computer.name} has won!"
-    else puts "It's a tie!"
+    else display_tie_result
     end
 
     display_score
+  end
+
+  def display_tie_result
+    puts "Game interrupted: it's now impossible to win!" unless board.full?
+    puts "It's a tie!"
   end
 
   def display_score
