@@ -1,7 +1,3 @@
-# Version with various sizes of grid
-
-require 'pry'
-
 module Syntax
   def joinor(array, word = ' or ')
     return array.join(word.to_s) if array.size < 3
@@ -23,64 +19,13 @@ class Board
     set_winning_lines
   end
 
-  def set_winning_lines
-    @winning_lines = []
-    set_winning_rows
-    set_winning_columns
-    set_winning_diagonals
-  end
-
-  def set_winning_rows
-    @winning_lines += (1..size**2).to_a.each_slice(size).to_a
-  end
-
-  def set_winning_columns
-    array = []
-    (1..size).each do |n|
-      n.step(by: size, to: size**2) { |i| array << i }
-    end
-    @winning_lines += array.each_slice(size).to_a
-  end
-
-  def set_winning_diagonals
-    ary1 = size.step(size**2, size - 1).to_a[0...-1]
-    ary2 = 1.step(size**2, size + 1).to_a
-    @winning_lines += [ary1] + [ary2]
-  end
-
   def draw
     @squares_copy = @squares.values
-    draw_outer_squares
-    (size - 1).times { draw_inner_squares }
-  end
-
-  def draw_outer_squares
-    draw_empty_line
-    draw_square_line
-    draw_empty_line
-  end
-
-  def draw_inner_squares
-    draw_separator
-    draw_outer_squares
-  end
-
-  def draw_empty_line
-    puts((' ' * WIDTH + '|') * (size - 1))
-  end
-
-  def draw_separator
-    puts(('-' * WIDTH + '+') * (size - 1) + '-' * WIDTH)
-  end
-
-  def draw_square_line
-    margin = ' ' * (WIDTH / 2)
-
+    draw_squares
     (size - 1).times do
-      print margin + @squares_copy.shift.marker + margin + '|'
+      draw_line('-', '+')
+      draw_squares
     end
-
-    puts margin + @squares_copy.shift.marker
   end
 
   def reset
@@ -122,10 +67,6 @@ class Board
     nil
   end
 
-  def get_markers_at(line)
-    @squares.values_at(*line).map(&:marker)
-  end
-
   def find_strategic_square(player_marker)
     winning_lines.each do |line|
       markers = get_markers_at(line)
@@ -141,6 +82,53 @@ class Board
   end
 
   private
+
+  def draw_squares
+    draw_line(' ', '|')
+    draw_square_line
+    draw_line(' ', '|')
+  end
+
+  def draw_line(space, separator)
+    puts((space * WIDTH + separator) * (size - 1) + space * WIDTH)
+  end
+
+  def draw_square_line
+    margin = ' ' * (WIDTH / 2)
+    (size - 1).times do
+      print margin + @squares_copy.shift.marker + margin + '|'
+    end
+    puts margin + @squares_copy.shift.marker
+  end
+
+  def set_winning_lines
+    @winning_lines = []
+    set_winning_rows
+    set_winning_columns
+    set_winning_diagonals
+  end
+
+  def set_winning_rows
+    @winning_lines += (1..size**2).to_a.each_slice(size).to_a
+  end
+
+  def set_winning_columns
+    array = []
+    (1..size).each do |n|
+      n.step(by: size, to: size**2) { |i| array << i }
+    end
+    @winning_lines += array.each_slice(size).to_a
+  end
+
+  def set_winning_diagonals
+    ary1 = size.step(size**2, size - 1).to_a[0...-1]
+    ary2 = 1.step(size**2, size + 1).to_a
+    @winning_lines += [ary1] + [ary2]
+  end
+  
+  def get_markers_at(line)
+    @squares.values_at(*line).map(&:marker)
+  end
 
   def identical_markers?(number, markers, player_marker)
     markers.delete(Square::INITIAL_MARKER)
