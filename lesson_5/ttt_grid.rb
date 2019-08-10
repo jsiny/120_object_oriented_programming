@@ -353,7 +353,8 @@ class Game
   end
 
   def human_moves
-    puts "Choose a square (#{joinor(board.unmarked_keys)}): "
+    puts "Choose a square: "
+    display_available_squares
     square = ''
     loop do
       square = gets.chomp.to_i
@@ -361,6 +362,16 @@ class Game
       puts "Sorry, that's not a valid choice."
     end
     board[square] = human.marker
+  end
+
+  def display_available_squares
+    size = board.size
+    size.times do |i|
+      line = board.unmarked_keys.select do |n|
+        n != size * i && n / size == i || n == size * (i + 1)
+      end
+      puts "- #{joinor(line)}" unless line.empty?
+    end
   end
 
   def computer_moves
