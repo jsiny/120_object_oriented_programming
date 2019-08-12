@@ -235,6 +235,14 @@ class Computer < Player
   def choose_name
     @name = %w(Wall-E HAL9000 Bender Terminator R2D2 AVA Baymax).sample
   end
+
+  def choose_move(board, opponent_marker)
+    best_moves = board.find_strategic_square(marker)          ||
+                 board.find_strategic_square(opponent_marker) ||
+                 board.place_center_square                    ||
+                 board.unmarked_keys
+    best_moves.sample
+  end
 end
 
 # Game loop and mechanisms
@@ -370,12 +378,7 @@ class Game
   end
 
   def computer_moves
-    best_moves = board.find_strategic_square(computer.marker)  ||
-                 board.find_strategic_square(human.marker)     ||
-                 board.place_center_square                     ||
-                 board.unmarked_keys
-
-    move = best_moves.sample
+    move = computer.choose_move(board, human.marker)
     board[move] = computer.marker
   end
 
