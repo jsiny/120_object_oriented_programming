@@ -8,6 +8,8 @@ end
 
 # Class that tracks all states of the playing board
 class Board
+  include Syntax
+
   attr_reader :size, :winning_lines
 
   POSSIBLE_GRID_SIZES = [3, 5, 7, 9]
@@ -81,6 +83,15 @@ class Board
 
   def place_center_square
     [@center] if unmarked_keys.include?(@center)
+  end
+
+  def display_available_squares
+    size.times do |i|
+      line = unmarked_keys.select do |n|
+        n != size * i && n / size == i || n == size * (i + 1)
+      end
+      puts "- #{joinor(line)}" unless line.empty?
+    end
   end
 
   private
@@ -177,7 +188,7 @@ class Player
   end
 end
 
-# Human class, with choices
+# Human class, with various choices for the player
 class Human < Player
   include Syntax
 
@@ -228,9 +239,21 @@ class Human < Player
     end
     size
   end
+
+  def choose_move(board)
+    puts 'Choose a square: '
+    board.display_available_squares
+    square = ''
+    loop do
+      square = gets.chomp.to_i
+      break if board.unmarked_keys.include?(square)
+      puts "Sorry, that's not a valid choice."
+    end
+    board[square] = marker
+  end
 end
 
-# Computer class, to choose the computer name
+# Computer class, for the computer name and move logic
 class Computer < Player
   def choose_name
     @name = %w(Wall-E HAL9000 Bender Terminator R2D2 AVA Baymax).sample
@@ -241,7 +264,7 @@ class Computer < Player
                  board.find_strategic_square(opponent_marker) ||
                  board.place_center_square                    ||
                  board.unmarked_keys
-    best_moves.sample
+    board[best_moves.sample] = marker
   end
 end
 
@@ -273,7 +296,7 @@ class Game
 
   def play_round
     display_board
-    players_moves
+    players_move
     record_score
     display_result
   end
@@ -333,9 +356,9 @@ class Game
                       end
   end
 
-  def players_moves
+  def players_move
     loop do
-      current_player_moves
+      current_player_move
       break if board.someone_won? || board.full? || board.unwinnable?
       clear_screen_and_display_board if human_turn?
     end
@@ -345,41 +368,14 @@ class Game
     @current_marker == human.marker
   end
 
-  def current_player_moves
+  def current_player_move
     if human_turn?
-      human_moves
+      human.choose_move(board)
       @current_marker = computer.marker
     else
-      computer_moves
+      computer.choose_move(board, human.marker)
       @current_marker = human.marker
     end
-  end
-
-  def human_moves
-    puts 'Choose a square: '
-    display_available_squares
-    square = ''
-    loop do
-      square = gets.chomp.to_i
-      break if board.unmarked_keys.include?(square)
-      puts "Sorry, that's not a valid choice."
-    end
-    board[square] = human.marker
-  end
-
-  def display_available_squares
-    size = board.size
-    size.times do |i|
-      line = board.unmarked_keys.select do |n|
-        n != size * i && n / size == i || n == size * (i + 1)
-      end
-      puts "- #{joinor(line)}" unless line.empty?
-    end
-  end
-
-  def computer_moves
-    move = computer.choose_move(board, human.marker)
-    board[move] = computer.marker
   end
 
   def record_score
