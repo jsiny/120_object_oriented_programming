@@ -28,11 +28,12 @@
 =end
 
 module Tools
-  MAX_SIZE = 70
-  LINE_BREAK = '-' * MAX_SIZE
-  SMALL_BREAK = '-' * 15
+  MAX_SIZE      = 70
+  LINE_BREAK    = '-' * MAX_SIZE
+  SMALL_BREAK   = '-' * 15
   SLEEPING_TIME = 1
-  SEPARATOR = '*'
+  SEPARATOR     = '*'
+  MAX_SCORE     = 21 # not sure this should be here
 
   def wrap_sentence(str, max_size)
     words = str.split
@@ -69,10 +70,13 @@ end
 class Player
   include Tools
 
-  attr_accessor :hand
+  attr_accessor :hand, :deck
+  attr_reader :want_to_stay
 
-  def initialize
+  def initialize(deck)
     @hand = []
+    @deck = deck
+    @want_to_stay = false
   end
 
   def score
@@ -90,40 +94,58 @@ class Player
     @score
   end
 
+  def hit
+    hand << deck.deal
+  end
+
+  def busted?
+    @score > MAX_SCORE
+  end
+
+  def stay
+    @want_to_stay = true
+  end
+
+  private
+
   def control_for_aces
     hand.each do |card|
-      @score -= 10 if card[0] == 'A' && @score > 21
+      @score -= 10 if card[0] == 'A' && @score > MAX_SCORE
     end
   end
 end
 
 class Gambler < Player
+  VALID_PLAY_ANSWERS = %w(h s)
   # def initialize
   #   # What would be the states of a Gambler object? cards? a name?
   # end
 
   def play
-
+    case choose_action
+    when 'h' then hit
+    when 's' then stay
+    end
   end
 
-  def hit
-  end
+  private
 
-  def stay
+  def choose_action
+    answer = ''
+    loop do
+      puts 'Do you (h)it or (s)tay?'
+      answer = gets.chomp.downcase
+      break if VALID_PLAY_ANSWERS.include?(answer) 
+      puts "Sorry, you must type 'h' or 's'"
+    end
+    answer
   end
-
-  def busted?
-  end
-
-  # def score
-  #   # we'll need to know about cards to produce some total
-  # end
 end
 
 class Dealer < Player
   attr_reader :second_card
 
-  def initialize
+  def initialize(deck)
     super
     @second_card = :hidden
   end
@@ -132,14 +154,14 @@ class Dealer < Player
     second_card == :hidden ? hand.first : hand.join(' - ')
   end
 
-  def hit
-  end
+  # def hit
+  # end
 
-  def stay
-  end
+  # def stay
+  # end
 
-  def busted?
-  end
+  # def busted?
+  # end
 
   def score
     if second_card == :hidden
@@ -227,16 +249,17 @@ class Game
       #{LINE_BREAK}
       Each card has a value: numbers are worth their face value, figures are
       worth 10 points, and an ace can be worth 1 or 10.
-      Your goal: to get as close as possible to 21, without going overboard!
+      Your goal: to get as close as possible to #{MAX_SCORE}, without going
+      overboard!
       #{LINE_BREAK}
-      Understood? Press any key to start the game!
+      Understood? Type any key to start the game!
     BLOCK
   end
 
   def setup_game
     @deck = Deck.new
-    @dealer = Dealer.new
-    @gambler = Gambler.new
+    @dealer = Dealer.new(deck)
+    @gambler = Gambler.new(deck)
     @table = Table.new(dealer, gambler)
   end
 
@@ -255,8 +278,12 @@ class Game
   end
 
   def gambler_turn
-    display_cards
-    gambler.play
+    loop do
+      display_cards
+      break if gambler.busted? || gambler.want_to_stay
+      gambler.play
+      clear
+    end
   end
 end
 
