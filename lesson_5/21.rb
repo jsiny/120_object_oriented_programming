@@ -1,12 +1,12 @@
 =begin
 1. Initialize deck
-2. Deal cards to player and dealer
-3. Player turn: hit or stay
+2. Deal cards to gambler and dealer
+3. Gambler turn: hit or stay
   - repeat until bust or "stay"
-4. If player bust, dealer wins.
+4. If gambler bust, dealer wins.
 5. Dealer turn: hit or stay
   - repeat until total >= 17
-6. If dealer bust, player wins.
+6. If dealer bust, gambler wins.
 7. Compare cards and declare winner.
 
 - cards
@@ -59,19 +59,40 @@ module Tools
   def print_center(message)
     puts message.center(MAX_SIZE)
   end
+
+  def numeric_string?(str)
+    str.to_i.to_s == str
+  end
 end
 
-class Participant
+class Player
+  include Tools
+
   attr_accessor :hand
+  # attr_reader :score
 
   def initialize
     @hand = []
   end
+
+  def score
+    score = 0
+    hand.each do |card|
+      if numeric_string?(card[0])
+        score += card[0].to_i
+      elsif Deck::HEADS.include?(card[0])
+        score += 10
+      # else
+        # ace
+      end
+    end
+    score
+  end
 end
 
-class Player < Participant
+class Gambler < Player
   # def initialize
-  #   # What would be the states of a Player object? cards? a name?
+  #   # What would be the states of a Gambler object? cards? a name?
   # end
 
   def hit
@@ -83,12 +104,12 @@ class Player < Participant
   def busted?
   end
 
-  def total
-    # we'll need to know about cards to produce some total
-  end
+  # def score
+  #   # we'll need to know about cards to produce some total
+  # end
 end
 
-class Dealer < Participant
+class Dealer < Player
   attr_reader :second_card
 
   def initialize
@@ -109,16 +130,21 @@ class Dealer < Participant
   def busted?
   end
 
-  def total
-    # we'll need to know about cards to produce some total
+  def score
+    if second_card == :hidden
+      '?'
+    else
+      super
+    end
   end
 end
 
 class Deck
   attr_accessor :deck
 
-  SUITS   = %w(♠ ♥ ♦ ♣)
-  VALUES  = %w(2 3 4 5 6 7 8 9 10 J Q K A)
+  SUITS  = %w(♠ ♥ ♦ ♣)
+  VALUES = %w(2 3 4 5 6 7 8 9 10 J Q K A)
+  HEADS  = %w(J Q K)
 
   def initialize
     shuffle_deck
@@ -140,27 +166,32 @@ end
 class Table
   include Tools
 
-  attr_reader :dealer, :player
+  attr_reader :dealer, :gambler
 
-  def initialize(dealer, player)
+  def initialize(dealer, gambler)
     @dealer = dealer
-    @player = player
+    @gambler = gambler
   end
 
   def display_cards
-    print_center("Player's hand:")
-    print_center(player.hand.join(' '))
+    print_center("Gambler's hand:")
+    print_center(gambler.hand.join(' '))
     print_center(SMALL_BREAK)
     print_center("Dealer's hand:")
     print_center(dealer.public_hand)
     puts ''
+  end
+
+  def display_scores
+    puts gambler.score
+    puts dealer.score
   end
 end
 
 class Game
   include Tools
 
-  attr_reader :deck, :player, :dealer, :table
+  attr_reader :deck, :gambler, :dealer, :table
 
   def start
     display_welcome_message
@@ -197,14 +228,14 @@ class Game
   def setup_game
     @deck = Deck.new
     @dealer = Dealer.new
-    @player = Player.new
-    @table = Table.new(dealer, player)
+    @gambler = Gambler.new
+    @table = Table.new(dealer, gambler)
   end
 
   def deal_cards
     print_center('Shuffling cards...')
     2.times do
-      player.hand << deck.deal
+      gambler.hand << deck.deal
       dealer.hand << deck.deal
     end
     sleep SLEEPING_TIME
@@ -213,6 +244,7 @@ class Game
 
   def show_initial_cards
     table.display_cards
+    table.display_scores
   end
 end
 
