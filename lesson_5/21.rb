@@ -27,6 +27,34 @@
 * play
 =end
 
+module Tools
+  MAX_SIZE = 45
+  LINE_BREAK = '-' * MAX_SIZE
+
+  def wrap_sentence(str, max_size)
+    words = str.split
+    line_size = 0
+
+    loop do
+      word = words.shift
+      line_size += word.size + 1
+
+      if line_size > max_size
+        word.prepend("\n")
+        line_size = word.size + 1
+      end
+
+      print word + ' '
+      break if words.empty?
+    end
+    print "\n"
+  end
+
+  def clear
+    system 'clear' || system('cls')
+  end
+end
+
 class Player
   def initialize
     # What would be the states of a Player object? cards? a name?
@@ -96,6 +124,8 @@ class Table
 end
 
 class Game
+  include Tools
+
   def start
     display_welcome_message
     deal_cards
@@ -106,62 +136,22 @@ class Game
   end
 
   private
-  
+
   def display_welcome_message
-    print wordwrap(welcome_message)
+    clear
+    wrap_sentence(welcome_message, MAX_SIZE)
   end
 
   def welcome_message
     <<~BLOCK
       Welcome to our Special Casino, where you can only play (some kind of) \
       BlackJack!
+      #{LINE_BREAK}
+      Each card has a value: numbers are worth their face value, figures are 
+      worth 10 points, and an ace can be worth 1 or 10.
+      Your goal: to get as close as possible to 21, without going overboard! 
     BLOCK
   end
-
-  def wordwrap(str, width = 60)
-    char_count = 0
-    lastchar = str.end_with?(' ') ? ' ' : ''
-    str.split(/ /).each do |word|
-      char_count += word.size + 1
-      if char_count > width
-        word.prepend("\n") unless word.start_with?("\n\n")
-        char_count = word.size + 1
-      end
-      char_count = word.size - 1 if word.include?("\n\n")
-    end.join(' ') << lastchar
-  end
-
 end
 
 Game.new.start
-
-# print wordwrap
-
-# Assumes "space plus \n\n" for new paragraph.
-# def word_wrap(str, width = App::SCREEN_WIDTH)
-#   char_count = 0
-#   lastchar = str.end_with?(' ') ? ' ' : ''
-#   str.split(/ /).each do |word|
-#     char_count += word.size + 1
-#     if char_count > width
-#       word.prepend("\n") unless word.start_with?("\n\n")
-#       char_count = word.size + 1
-#     end
-#     char_count = word.size - 1 if word.include?("\n\n")
-#   end.join(' ') << lastchar
-# end
-
-# SCREEN_WIDTH = 60
-
-# <<~BLOCK
-#       Welcome #{@gambler.name}!
-#       You have been awarded a gambling spree at General Rodes Black Jack, \
-#       our favorite casino!#{SPACE}
-#       Black Jack is the game we play ... sort of. No doubling down, and no \
-#       splitting pairs.#{SPACE}
-#       You have $#{GAMBLER_STAKE} to play with. Bet is $#{BET} per hand.#{SPACE}
-#       Black Jack (natural #{App::BUST_VALUE}) pays #{NATURAL_MULTIPLIER} \
-#       to 1. Good luck!#{SPACE}
-#       Please hit #{KEY_ONLY ? 'any key' : '"Enter"'} when you are ready to \
-#       begin:#{SPACE}
-#     BLOCK
