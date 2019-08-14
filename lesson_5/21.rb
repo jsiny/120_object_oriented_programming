@@ -31,7 +31,8 @@ module Tools
   MAX_SIZE = 70
   LINE_BREAK = '-' * MAX_SIZE
   SMALL_BREAK = '-' * 15
-  SLEEPING_TIME = 2
+  SLEEPING_TIME = 1
+  SEPARATOR = '*'
 
   def wrap_sentence(str, max_size)
     words = str.split
@@ -69,24 +70,30 @@ class Player
   include Tools
 
   attr_accessor :hand
-  # attr_reader :score
 
   def initialize
     @hand = []
   end
 
   def score
-    score = 0
+    @score = 0
     hand.each do |card|
-      if numeric_string?(card[0])
-        score += card[0].to_i
-      elsif Deck::HEADS.include?(card[0])
-        score += 10
-      # else
-        # ace
-      end
+      @score += if numeric_string?(card[0])
+                  card[0].to_i
+                elsif Deck::HEADS.include?(card[0])
+                  10
+                else
+                  11
+                end
     end
-    score
+    control_for_aces
+    @score
+  end
+
+  def control_for_aces
+    hand.each do |card|
+      @score -= 10 if card[0] == 'A' && @score > 21
+    end
   end
 end
 
@@ -94,6 +101,10 @@ class Gambler < Player
   # def initialize
   #   # What would be the states of a Gambler object? cards? a name?
   # end
+
+  def play
+
+  end
 
   def hit
   end
@@ -118,7 +129,7 @@ class Dealer < Player
   end
 
   def public_hand
-    second_card == :hidden ? hand.first : hand.join(' ')
+    second_card == :hidden ? hand.first : hand.join(' - ')
   end
 
   def hit
@@ -173,18 +184,16 @@ class Table
     @gambler = gambler
   end
 
-  def display_cards
-    print_center("Gambler's hand:")
-    print_center(gambler.hand.join(' '))
+  def display_cards_and_scores
+    print_center("Your hand:")
+    print_center(gambler.hand.join(' - '))
+    puts ''
+    print_center("Score: #{gambler.score}")
     print_center(SMALL_BREAK)
     print_center("Dealer's hand:")
     print_center(dealer.public_hand)
     puts ''
-  end
-
-  def display_scores
-    puts gambler.score
-    puts dealer.score
+    print_center("Score: #{dealer.score}")
   end
 end
 
@@ -197,8 +206,7 @@ class Game
     display_welcome_message
     setup_game
     deal_cards
-    show_initial_cards
-    player_turn
+    gambler_turn
     dealer_turn
     show_result
   end
@@ -242,9 +250,13 @@ class Game
     clear
   end
 
-  def show_initial_cards
-    table.display_cards
-    table.display_scores
+  def display_cards
+    table.display_cards_and_scores
+  end
+
+  def gambler_turn
+    display_cards
+    gambler.play
   end
 end
 
