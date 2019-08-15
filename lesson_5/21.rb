@@ -49,6 +49,16 @@ class Player
     @exit_strategy = nil
   end
 
+  def turn(table)
+    loop do
+      sleep SLEEPING_TIME
+      clear
+      table.display_cards_and_scores
+      break if busted? || stayed?
+      play
+    end
+  end
+
   def score
     @score = 0
     hand.each do |card|
@@ -125,7 +135,7 @@ class Gambler < Player
     loop do
       puts 'Do you (h)it or (s)tay?'
       answer = gets.chomp.downcase
-      break if VALID_PLAY_ANSWERS.include?(answer) 
+      break if VALID_PLAY_ANSWERS.include?(answer)
       puts "Sorry, you must type 'h' or 's'"
     end
     answer
@@ -228,8 +238,7 @@ class Game
     display_welcome_message
     setup_game
     deal_cards
-    gambler_turn
-    dealer_turn if dealer_can_play?
+    players_turn
     show_result
   end
 
@@ -279,38 +288,18 @@ class Game
       gambler.hand << deck.deal
       dealer.hand << deck.deal
     end
-    sleep SLEEPING_TIME
-    clear
   end
 
-  def display_cards
-    table.display_cards_and_scores
-  end
-
-  def gambler_turn
-    loop do
-      display_cards
-      break if gambler.busted? || gambler.stayed?
-      gambler.play
-      sleep SLEEPING_TIME
-      clear
-    end
+  def players_turn
+    gambler.turn(table)
     display_post_gambler_turn_message
+    return unless dealer_can_play?
+    dealer.reveal_hand
+    dealer.turn(table)
   end
 
   def dealer_can_play?
     gambler.exit_strategy == :stayed
-  end
-
-  def dealer_turn
-    dealer.reveal_hand
-    loop do
-      sleep SLEEPING_TIME
-      clear
-      display_cards
-      break if dealer.busted? || dealer.stayed?
-      dealer.play
-    end
   end
 end
 
