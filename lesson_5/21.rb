@@ -59,7 +59,7 @@ class Player
     loop do
       sleep SLEEPING_TIME
       clear
-      table.display_cards_and_scores
+      table.display
       break if busted? || stayed?
       play
     end
@@ -135,6 +135,10 @@ class Gambler < Player
       puts 'Do you want to play again? (y/n)'
     end
     answer == 'y'
+  end
+
+  def public_hand
+    hand.join(' - ')
   end
 
   private
@@ -259,17 +263,20 @@ class Table
     @gambler = gambler
   end
 
-  def display_cards_and_scores
+  def display
     display_points
-    print_center("Your hand:")
-    print_center(gambler.hand.join(' - '))
-    puts ''
-    print_center("Score: #{gambler.score}")
+    display_hand_and_score(gambler)
     print_center(SMALL_BREAK)
-    print_center("Dealer's hand:")
-    print_center(dealer.public_hand)
+    display_hand_and_score(dealer)
+  end
+
+  private
+
+  def display_hand_and_score(player)
+    print_center("#{player.name.split.first}'s hand:")
+    print_center(player.public_hand)
     puts ''
-    print_center("Score: #{dealer.score}")
+    print_center("Score: #{player.score}")
   end
 
   def display_points
@@ -407,7 +414,7 @@ class Game
       Damn it, the dealer busted! How come the fool didn't remember which card
       came next?! Anyway...
       #{LINE_BREAK}
-      Care about a rematch maybe? (y/n)
+      Care for a rematch maybe? (y/n)
     BLOCK
   end
 
