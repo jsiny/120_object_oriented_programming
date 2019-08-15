@@ -1,38 +1,8 @@
-=begin
-1. Initialize deck
-2. Deal cards to gambler and dealer
-3. Gambler turn: hit or stay
-  - repeat until bust or "stay"
-4. If gambler bust, dealer wins.
-5. Dealer turn: hit or stay
-  - repeat until total >= 17
-6. If dealer bust, gambler wins.
-7. Compare cards and declare winner.
-
-- cards
-- deck
-* deal
-
-- players:
-* hit
-* stay
-* busted?
-* total
-
-> Human
-> dealer
-
-- game
-* compare cards
-* play
-=end
-
 module Tools
   MAX_SIZE      = 70
   LINE_BREAK    = '-' * MAX_SIZE
   SMALL_BREAK   = '-' * 15
   SLEEPING_TIME = 1
-  SEPARATOR     = '*'
   MAX_SCORE     = 21 # not sure this should be here
 
   def wrap_sentence(str, max_size)
@@ -106,6 +76,13 @@ class Player
     @exit_strategy == :stayed
   end
 
+  def play
+    case choose_action
+    when 'h' then hit
+    when 's' then stay
+    end
+  end
+
   private
 
   def stay
@@ -128,10 +105,7 @@ class Gambler < Player
   def play
     puts ''
     puts "It's your turn!"
-    case choose_action
-    when 'h' then hit
-    when 's' then stay
-    end
+    super
   end
 
   private
@@ -176,6 +150,25 @@ class Dealer < Player
     else
       super
     end
+  end
+
+  def choose_action
+    @score >= 17 ? 's' : 'h'
+  end
+
+  def reveal_hand
+    @second_card = :revealed
+  end
+
+  def stay
+    puts 'The dealer stays!'
+    sleep SLEEPING_TIME
+    super
+  end
+
+  def hit
+    puts 'The dealer hits...'
+    super
   end
 end
 
@@ -307,6 +300,17 @@ class Game
 
   def dealer_can_play?
     gambler.exit_strategy == :stayed
+  end
+
+  def dealer_turn
+    dealer.reveal_hand
+    loop do
+      sleep SLEEPING_TIME
+      clear
+      display_cards
+      break if dealer.busted? || dealer.stayed?
+      dealer.play
+    end
   end
 end
 
