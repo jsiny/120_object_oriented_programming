@@ -85,10 +85,6 @@ class Player
     @score
   end
 
-  def hit
-    hand << deck.deal
-  end
-
   def busted?
     @exit_strategy = :busted if @score > MAX_SCORE
   end
@@ -97,6 +93,8 @@ class Player
     @exit_strategy == :stayed
   end
 
+  private
+
   def play
     case choose_action
     when 'h' then hit
@@ -104,7 +102,9 @@ class Player
     end
   end
 
-  private
+  def hit
+    hand << deck.deal
+  end
 
   def stay
     @exit_strategy = :stayed
@@ -119,12 +119,6 @@ end
 
 class Gambler < Player
   VALID_PLAY_ANSWERS = %w(h s)
-
-  def play
-    puts ''
-    puts "It's your turn!"
-    super
-  end
 
   def choose_to_play_again?
     answer = ''
@@ -142,6 +136,12 @@ class Gambler < Player
   end
 
   private
+
+  def play
+    puts ''
+    puts "It's your turn!"
+    super
+  end
 
   def hit
     puts "You chose to hit! Let's see if that was wise..."
@@ -199,6 +199,12 @@ class Dealer < Player
     end
   end
 
+  def reveal_hand
+    @second_card = :revealed
+  end
+
+  private
+
   def play
     puts ''
     puts "It's now the dealer's turn!"
@@ -211,10 +217,6 @@ class Dealer < Player
 
   def choose_name
     FAMOUS_BLACKJACK_PLAYERS.sample
-  end
-
-  def reveal_hand
-    @second_card = :revealed
   end
 
   def stay
@@ -240,16 +242,18 @@ class Deck
     shuffle_deck
   end
 
+  def deal
+    deck.shift
+  end
+
+  private
+
   def shuffle_deck
     @deck = []
     SUITS.each do |suit|
       VALUES.each { |value| deck << value + ' ' + suit }
     end
     deck.shuffle!
-  end
-
-  def deal
-    deck.shift
   end
 end
 
@@ -294,12 +298,12 @@ class Game
 
   attr_reader :deck, :gambler, :dealer, :table
 
-  def start
-    display_welcome_message
+  def play
     setup_game
     game_round
-    display_closing_message
   end
+
+  private
 
   def game_round
     loop do
@@ -309,26 +313,12 @@ class Game
       break unless play_again?
       reset_game
     end
+    display_closing_message
   end
-
-  private
 
   def display_welcome_message
     clear
     wrap_sentence(welcome_message)
-  end
-
-  def display_closing_message
-    wrap_sentence(closing_message)
-  end
-
-  def closing_message
-    <<~BLOCK
-      #{LINE_BREAK}
-      Well then! It has been a *real* pleasure to try and crook you
-      #{gambler.name}. Come back soon!
-      #{LINE_BREAK}
-    BLOCK
   end
 
   def welcome_message
@@ -345,11 +335,28 @@ class Game
   end
 
   def setup_game
+    display_welcome_message
     @deck = Deck.new
     @dealer = Dealer.new(deck)
     @gambler = Gambler.new(deck)
     @table = Table.new(dealer, gambler)
     announce_players
+  end
+
+  def announce_players
+    wrap_sentence(players_introduction_message)
+    gets
+    clear
+  end
+
+  def players_introduction_message
+    <<~BLOCK
+      #{LINE_BREAK}
+      #{gambler.name}? Great! You'll be playing against #{dealer.name}, who may
+      or may not go easy on you... Well this is gonna be fun!
+      #{LINE_BREAK}
+      Press any key when you're ready!
+    BLOCK
   end
 
   def deal_cards
@@ -446,22 +453,6 @@ class Game
     BLOCK
   end
 
-  def announce_players
-    wrap_sentence(players_introduction_message)
-    gets
-    clear
-  end
-
-  def players_introduction_message
-    <<~BLOCK
-      #{LINE_BREAK}
-      #{gambler.name}? Great! You'll be playing against #{dealer.name}, who may
-      or may not go easy on you... Well this is gonna be fun!
-      #{LINE_BREAK}
-      Press any key when you're ready!
-    BLOCK
-  end
-
   def play_again?
     return unless gambler.choose_to_play_again?
     puts "And here we go again!"
@@ -475,6 +466,19 @@ class Game
     dealer.reset_hand_and_score(deck)
     gambler.reset_hand_and_score(deck)
   end
+
+  def display_closing_message
+    wrap_sentence(closing_message)
+  end
+
+  def closing_message
+    <<~BLOCK
+      #{LINE_BREAK}
+      Well then! It has been a *real* pleasure to try and crook you
+      #{gambler.name}. Come back soon!
+      #{LINE_BREAK}
+    BLOCK
+  end
 end
 
-Game.new.start
+Game.new.play
