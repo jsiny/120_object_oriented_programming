@@ -41,12 +41,13 @@ class Player
   include Tools
 
   attr_accessor :hand, :deck
-  attr_reader :exit_strategy
+  attr_reader :exit_strategy, :name
 
   def initialize(deck)
-    @hand = []
-    @deck = deck
-    @exit_strategy = nil
+    @hand           = []
+    @deck           = deck
+    @exit_strategy  = nil
+    @name           = choose_name
   end
 
   def turn(table)
@@ -109,9 +110,6 @@ end
 
 class Gambler < Player
   VALID_PLAY_ANSWERS = %w(h s)
-  # def initialize
-  #   # What would be the states of a Gambler object? cards? a name?
-  # end
 
   def play
     puts ''
@@ -141,10 +139,24 @@ class Gambler < Player
     end
     answer
   end
+
+  def choose_name
+    name = ''
+    loop do
+      puts "What's your name dear?"
+      name = gets.chomp.delete('^a-zA-Z ').strip.capitalize
+      break unless name.empty?
+      puts 'Sorry but you must enter a valid name'
+    end
+    name
+  end
 end
 
 class Dealer < Player
   attr_reader :second_card
+  FAMOUS_BLACKJACK_PLAYERS = ['Bryce Carlson', 'Cathy Hulbert',
+                              'Arnold Snyder', 'Alice Walker',
+                              'Stanford Wong', 'Eleanore Dumont']
 
   def initialize(deck)
     super
@@ -171,6 +183,10 @@ class Dealer < Player
 
   def choose_action
     @score >= 17 ? 's' : 'h'
+  end
+
+  def choose_name
+    FAMOUS_BLACKJACK_PLAYERS.sample
   end
 
   def reveal_hand
@@ -254,21 +270,18 @@ class Game
   def display_welcome_message
     clear
     wrap_sentence(welcome_message)
-    gets.chomp
-    clear
   end
 
   def welcome_message
     <<~BLOCK
       Welcome to our Special Casino, where you can only play (some kind of)
-      BlackJack!
+      blackjack!
       #{LINE_BREAK}
       Each card has a value: numbers are worth their face value, figures are
-      worth 10 points, and an ace can be worth 1 or 10.
+      worth 10 points, and an ace can be worth 1 or 11.
       Your goal: to get as close as possible to #{MAX_SCORE}, without going
       overboard!
       #{LINE_BREAK}
-      Understood? Type any key to start the game!
     BLOCK
   end
 
@@ -277,6 +290,7 @@ class Game
     @dealer = Dealer.new(deck)
     @gambler = Gambler.new(deck)
     @table = Table.new(dealer, gambler)
+    announce_players
   end
 
   def deal_cards
@@ -325,39 +339,54 @@ class Game
 
   def gambler_busts_message
     <<~BLOCK
-      You busted!! Told you, you shouldn't have pushed your luck!
-      Better luck next time... maybe...
+      You busted!! Told you, you shouldn't have pushed your luck! Better luck
+      next time... maybe.
     BLOCK
   end
 
   def dealer_busts_message
     <<~BLOCK
-      Damn it, the dealer busted! How come he didn't remember
-      which card came next?! Anyway... Care about a rematch maybe?
+      Damn it, the dealer busted! How come the fool didn't remember which card
+      came next?! Anyway... Care about a rematch maybe?
     BLOCK
   end
 
   def gambler_wins_message
     <<~BLOCK
-      You scored #{gambler.score} points while the dealer only
-      scored #{dealer.score}: this is probably beginner's luck
-      but you won this round. Care about proving you can do it again?
+      You scored #{gambler.score} points while the dealer only scored
+      #{dealer.score}: this is probably beginner's luck but you won this round.
+      Care about proving you can do it again?
     BLOCK
   end
 
   def dealer_wins_message
     <<~BLOCK
-      Awww this is unfortunate... The dealer scored
-      #{dealer.score} points and your meager #{gambler.score}
-      points can't keep up. Better luck next time!
+      Awww this is unfortunate... The dealer scored #{dealer.score} points
+      and your meager #{gambler.score} points can't keep up. Better luck
+      next time!
     BLOCK
   end
 
   def no_one_wins_message
     <<~BLOCK
-      You both scored #{gambler.score} points. You'll need
-      another round to assert your undisputable Blackjack
-      mastery!
+      You both scored #{gambler.score} points. You'll need another round to
+      assert your undisputable blackjack mastery!
+    BLOCK
+  end
+
+  def announce_players
+    wrap_sentence(players_introduction_message)
+    gets
+    clear
+  end
+
+  def players_introduction_message
+    <<~BLOCK
+      #{LINE_BREAK}
+      #{gambler.name}? Great! You'll be playing against #{dealer.name}, who may
+      or may not go easy on you... Well this is gonna be fun!
+      #{LINE_BREAK}
+      Press any key when you're ready!
     BLOCK
   end
 end
