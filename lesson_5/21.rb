@@ -44,10 +44,14 @@ class Player
   attr_reader :exit_strategy, :name
 
   def initialize(deck)
+    @name = choose_name
+    reset_hand_and_score(deck)
+  end
+
+  def reset_hand_and_score(deck)
     @hand           = []
     @deck           = deck
     @exit_strategy  = nil
-    @name           = choose_name
   end
 
   def turn(table)
@@ -158,9 +162,9 @@ class Dealer < Player
                               'Arnold Snyder', 'Alice Walker',
                               'Stanford Wong', 'Eleanore Dumont']
 
-  def initialize(deck)
-    super
+  def reset_hand_and_score(deck)
     @second_card = :hidden
+    super
   end
 
   def public_hand
@@ -260,9 +264,18 @@ class Game
   def start
     display_welcome_message
     setup_game
-    deal_cards
-    players_turn
-    show_result
+    game_round
+    display_closing_message
+  end
+
+  def game_round
+    loop do
+      deal_cards
+      players_turn
+      show_result
+      break unless play_again?
+      reset_game
+    end
   end
 
   private
@@ -270,6 +283,19 @@ class Game
   def display_welcome_message
     clear
     wrap_sentence(welcome_message)
+  end
+
+  def display_closing_message
+    wrap_sentence(closing_message)
+  end
+
+  def closing_message
+    <<~BLOCK
+      #{LINE_BREAK}
+      Well then! It has been a *real* pleasure to try and crook you
+      #{gambler.name}. Come back soon!
+      #{LINE_BREAK}
+    BLOCK
   end
 
   def welcome_message
@@ -361,7 +387,7 @@ class Game
 
   def dealer_wins_message
     <<~BLOCK
-      Awww this is unfortunate... The dealer scored #{dealer.score} points
+      Awww this is unfortunate... #{dealer.name} scored #{dealer.score} points
       and your meager #{gambler.score} points can't keep up. Better luck
       next time!
     BLOCK
@@ -388,6 +414,28 @@ class Game
       #{LINE_BREAK}
       Press any key when you're ready!
     BLOCK
+  end
+
+  def play_again?
+    answer = ''
+    puts LINE_BREAK
+    loop do
+      puts 'Do you want to play another round? (y/n)'
+      answer = gets.chomp.downcase
+      break if %w(y n).include?(answer)
+      puts "Sorry, I didn't get it"
+    end
+    return unless answer == 'y'
+    puts "And here we go again!"
+    sleep SLEEPING_TIME
+    clear
+    true
+  end
+
+  def reset_game
+    @deck = Deck.new
+    dealer.reset_hand_and_score(deck)
+    gambler.reset_hand_and_score(deck)
   end
 end
 
