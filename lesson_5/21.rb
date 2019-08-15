@@ -40,11 +40,11 @@ end
 class Player
   include Tools
 
-  attr_accessor :hand, :deck
-  attr_reader :exit_strategy, :name, :victory_points
+  attr_accessor :hand
+  attr_reader :exit_strategy, :name, :victory_points, :deck
 
   def initialize(deck)
-    @name           = choose_name
+    @name           = nil
     @victory_points = 0
     reset_hand_and_score(deck)
   end
@@ -135,6 +135,17 @@ class Gambler < Player
     hand.join(' - ')
   end
 
+  def choose_name
+    name = ''
+    loop do
+      puts "What's your name dear?"
+      name = gets.chomp.delete('^a-zA-Z ').strip.capitalize
+      break unless name.empty?
+      puts 'Sorry but you must enter a valid name'
+    end
+    @name = name
+  end
+
   private
 
   def play
@@ -162,17 +173,6 @@ class Gambler < Player
       puts "Sorry, you must type 'h' or 's'"
     end
     answer
-  end
-
-  def choose_name
-    name = ''
-    loop do
-      puts "What's your name dear?"
-      name = gets.chomp.delete('^a-zA-Z ').strip.capitalize
-      break unless name.empty?
-      puts 'Sorry but you must enter a valid name'
-    end
-    name
   end
 end
 
@@ -203,6 +203,10 @@ class Dealer < Player
     @second_card = :revealed
   end
 
+  def choose_name
+    @name = FAMOUS_BLACKJACK_PLAYERS.sample
+  end
+
   private
 
   def play
@@ -213,10 +217,6 @@ class Dealer < Player
 
   def choose_action
     @score >= 17 ? 's' : 'h'
-  end
-
-  def choose_name
-    FAMOUS_BLACKJACK_PLAYERS.sample
   end
 
   def stay
@@ -298,6 +298,13 @@ class Game
 
   attr_reader :deck, :gambler, :dealer, :table
 
+  def initialize
+    @deck = Deck.new
+    @dealer = Dealer.new(deck)
+    @gambler = Gambler.new(deck)
+    @table = Table.new(dealer, gambler)
+  end
+
   def play
     setup_game
     game_round
@@ -336,11 +343,13 @@ class Game
 
   def setup_game
     display_welcome_message
-    @deck = Deck.new
-    @dealer = Dealer.new(deck)
-    @gambler = Gambler.new(deck)
-    @table = Table.new(dealer, gambler)
+    set_names
     announce_players
+  end
+
+  def set_names
+    dealer.choose_name
+    gambler.choose_name
   end
 
   def announce_players
@@ -436,8 +445,8 @@ class Game
 
   def dealer_wins_message
     <<~BLOCK
-      Awww this is unfortunate... #{dealer.name} scored #{dealer.score} points
-      and your meager #{gambler.score} points can't keep up. Better luck
+      Awww this is *so* unfortunate... #{dealer.name} scored #{dealer.score}
+      points and your meager #{gambler.score} points can't keep up. Better luck
       next time!
       #{LINE_BREAK}
       Let's try again shall we? (y/n)
@@ -468,14 +477,50 @@ class Game
   end
 
   def display_closing_message
+    wrap_sentence(final_points_message)
+    wrap_sentence(final_comment)
     wrap_sentence(closing_message)
+  end
+
+  def final_points_message
+    <<~BLOCK
+      #{LINE_BREAK}
+      FINAL SCORE:
+      You won #{gambler.victory_points} rounds while the dealer won
+      #{dealer.victory_points} rounds.
+      #{LINE_BREAK}
+    BLOCK
+  end
+
+  def final_comment
+    if gambler.victory_points > dealer.victory_points
+      gambler_has_won_more_rounds_message
+    elsif dealer.victory_points > gambler.victory_points
+      dealer_has_won_more_rounds_message
+    else
+      rounds_tie_message
+    end
+  end
+
+  def gambler_has_won_more_rounds_message
+    <<~BLOCK
+      *Phew... We're quite lucky that this fellow is finally deciding to
+      leave...*
+    BLOCK
+  end
+
+  def dealer_has_won_more_rounds_message
+    "You've finally decided to cut your losses haha?"
+  end
+
+  def rounds_tie_message
+    "We'll settle for good who's the best next time!!"
   end
 
   def closing_message
     <<~BLOCK
-      #{LINE_BREAK}
-      Well then! It has been a *real* pleasure to try and crook you
-      #{gambler.name}. Come back soon!
+      It has been a *real* pleasure to try and crook you #{gambler.name}.
+      Come back soon!
       #{LINE_BREAK}
     BLOCK
   end
