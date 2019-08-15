@@ -41,10 +41,11 @@ class Player
   include Tools
 
   attr_accessor :hand, :deck
-  attr_reader :exit_strategy, :name
+  attr_reader :exit_strategy, :name, :victory_points
 
   def initialize(deck)
-    @name = choose_name
+    @name           = choose_name
+    @victory_points = 0
     reset_hand_and_score(deck)
   end
 
@@ -62,6 +63,10 @@ class Player
       break if busted? || stayed?
       play
     end
+  end
+
+  def add_point
+    @victory_points += 1
   end
 
   def score
@@ -124,10 +129,10 @@ class Gambler < Player
   def choose_to_play_again?
     answer = ''
     loop do
-      puts 'Do you want to play another round? (y/n)'
       answer = gets.chomp.downcase
       break if %w(y n).include?(answer)
-      puts "Sorry, I didn't get it"
+      puts 'Sorry, I may not have been clear enough.'
+      puts 'Do you want to play again? (y/n)'
     end
     answer == 'y'
   end
@@ -284,6 +289,8 @@ class Game
       deal_cards
       players_turn
       show_result
+      # puts gambler.victory_points
+      # puts dealer.victory_points
       break unless play_again?
       reset_game
     end
@@ -356,8 +363,10 @@ class Game
 
   def result_message
     if gambler.exit_strategy == :busted
+      dealer.add_point
       gambler_busts_message
     elsif dealer.exit_strategy == :busted
+      gambler.add_point
       dealer_busts_message
     else
       compare_scores
@@ -366,8 +375,10 @@ class Game
 
   def compare_scores
     if gambler.score > dealer.score
+      gambler.add_point
       gambler_wins_message
     elsif dealer.score > gambler.score
+      dealer.add_point
       dealer_wins_message
     else
       no_one_wins_message
@@ -376,15 +387,19 @@ class Game
 
   def gambler_busts_message
     <<~BLOCK
-      You busted!! Told you, you shouldn't have pushed your luck! Better luck
-      next time... maybe.
+      You busted! Told you, you shouldn't have pushed your luck... Better
+      luck next time!
+      #{LINE_BREAK}
+      Let's try now shall we? (y/n)
     BLOCK
   end
 
   def dealer_busts_message
     <<~BLOCK
       Damn it, the dealer busted! How come the fool didn't remember which card
-      came next?! Anyway... Care about a rematch maybe?
+      came next?! Anyway...
+      #{LINE_BREAK}
+      Care about a rematch maybe? (y/n)
     BLOCK
   end
 
@@ -392,7 +407,8 @@ class Game
     <<~BLOCK
       You scored #{gambler.score} points while the dealer only scored
       #{dealer.score}: this is probably beginner's luck but you won this round.
-      Care about proving you can do it again?
+      #{LINE_BREAK}
+      Care about proving you can do it again? (y/n)
     BLOCK
   end
 
@@ -401,6 +417,8 @@ class Game
       Awww this is unfortunate... #{dealer.name} scored #{dealer.score} points
       and your meager #{gambler.score} points can't keep up. Better luck
       next time!
+      #{LINE_BREAK}
+      Let's try again shall we? (y/n)
     BLOCK
   end
 
@@ -408,6 +426,8 @@ class Game
     <<~BLOCK
       You both scored #{gambler.score} points. You'll need another round to
       assert your undisputable blackjack mastery!
+      #{LINE_BREAK}
+      You do want to prove that, right? (y/n)
     BLOCK
   end
 
@@ -428,7 +448,6 @@ class Game
   end
 
   def play_again?
-    puts LINE_BREAK
     return unless gambler.choose_to_play_again?
     puts "And here we go again!"
     sleep SLEEPING_TIME
