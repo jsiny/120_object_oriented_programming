@@ -1,11 +1,11 @@
 module Tools
-  MAX_SIZE      = 70
+  MAX_SIZE      = 40
   LINE_BREAK    = '-' * MAX_SIZE
   SMALL_BREAK   = '-' * 15
   SLEEPING_TIME = 1
   MAX_SCORE     = 21 # not sure this should be here
 
-  def wrap_sentence(str, max_size)
+  def wrap_sentence(str, max_size = MAX_SIZE)
     words = str.split
     line_size = 0
 
@@ -253,7 +253,7 @@ class Game
 
   def display_welcome_message
     clear
-    wrap_sentence(welcome_message, MAX_SIZE)
+    wrap_sentence(welcome_message)
     gets.chomp
     clear
   end
@@ -299,13 +299,66 @@ class Game
   end
 
   def show_result
+    puts ''
+    wrap_sentence(result_message)
+  end
+
+  def result_message
     if gambler.exit_strategy == :busted
-      puts "You busted, the dealer wins"
+      gambler_busts_message
     elsif dealer.exit_strategy == :busted
-      puts "The dealer busted, you won!"
+      dealer_busts_message
     else
-      puts "We need to compare the scores"
+      compare_scores
     end
+  end
+
+  def compare_scores
+    if gambler.score > dealer.score
+      gambler_wins_message
+    elsif dealer.score > gambler.score
+      dealer_wins_message
+    else
+      no_one_wins_message
+    end
+  end
+
+  def gambler_busts_message
+    <<~BLOCK
+      You busted!! Told you, you shouldn't have pushed your luck!
+      Better luck next time... maybe...
+    BLOCK
+  end
+
+  def dealer_busts_message
+    <<~BLOCK
+      Damn it, the dealer busted! How come he didn't remember
+      which card came next?! Anyway... Care about a rematch maybe?
+    BLOCK
+  end
+
+  def gambler_wins_message
+    <<~BLOCK
+      You scored #{gambler.score} points while the dealer only
+      scored #{dealer.score}: this is probably beginner's luck
+      but you won this round. Care about proving you can do it again?
+    BLOCK
+  end
+
+  def dealer_wins_message
+    <<~BLOCK
+      Awww this is unfortunate... The dealer scored
+      #{dealer.score} points and your meager #{gambler.score}
+      points can't keep up. Better luck next time!
+    BLOCK
+  end
+
+  def no_one_wins_message
+    <<~BLOCK
+      You both scored #{gambler.score} points. You'll need
+      another round to assert your undisputable Blackjack
+      mastery!
+    BLOCK
   end
 end
 
