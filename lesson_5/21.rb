@@ -121,6 +121,17 @@ class Gambler < Player
     super
   end
 
+  def choose_to_play_again?
+    answer = ''
+    loop do
+      puts 'Do you want to play another round? (y/n)'
+      answer = gets.chomp.downcase
+      break if %w(y n).include?(answer)
+      puts "Sorry, I didn't get it"
+    end
+    answer == 'y'
+  end
+
   private
 
   def hit
@@ -417,15 +428,8 @@ class Game
   end
 
   def play_again?
-    answer = ''
     puts LINE_BREAK
-    loop do
-      puts 'Do you want to play another round? (y/n)'
-      answer = gets.chomp.downcase
-      break if %w(y n).include?(answer)
-      puts "Sorry, I didn't get it"
-    end
-    return unless answer == 'y'
+    return unless gambler.choose_to_play_again?
     puts "And here we go again!"
     sleep SLEEPING_TIME
     clear
