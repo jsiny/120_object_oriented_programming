@@ -71,12 +71,12 @@ class Player
   include Tools
 
   attr_accessor :hand, :deck
-  attr_reader :want_to_stay
+  attr_reader :exit_strategy
 
   def initialize(deck)
     @hand = []
     @deck = deck
-    @want_to_stay = false
+    @exit_strategy = nil
   end
 
   def score
@@ -99,14 +99,18 @@ class Player
   end
 
   def busted?
-    @score > MAX_SCORE
+    @exit_strategy = :busted if @score > MAX_SCORE
   end
 
-  def stay
-    @want_to_stay = true
+  def stayed?
+    @exit_strategy == :stayed
   end
 
   private
+
+  def stay
+    @exit_strategy = :stayed
+  end
 
   def control_for_aces
     hand.each do |card|
@@ -122,6 +126,8 @@ class Gambler < Player
   # end
 
   def play
+    puts ''
+    puts "It's your turn!"
     case choose_action
     when 'h' then hit
     when 's' then stay
@@ -129,6 +135,16 @@ class Gambler < Player
   end
 
   private
+
+  def hit
+    puts "You chose to hit! Let's see if that was wise..."
+    super
+  end
+
+  def stay
+    puts "You chose to stay. Better safe than sorry eh?"
+    super
+  end
 
   def choose_action
     answer = ''
@@ -153,15 +169,6 @@ class Dealer < Player
   def public_hand
     second_card == :hidden ? hand.first : hand.join(' - ')
   end
-
-  # def hit
-  # end
-
-  # def stay
-  # end
-
-  # def busted?
-  # end
 
   def score
     if second_card == :hidden
@@ -229,7 +236,7 @@ class Game
     setup_game
     deal_cards
     gambler_turn
-    dealer_turn
+    dealer_turn if dealer_can_play?
     show_result
   end
 
@@ -256,6 +263,16 @@ class Game
     BLOCK
   end
 
+  def display_post_gambler_turn_message
+    case gambler.exit_strategy
+    when :busted
+      puts 'You busted! The dealer wins'
+      # method to exit the game
+    when :stayed
+      puts "It's now the dealer's turn..."
+    end
+  end
+
   def setup_game
     @deck = Deck.new
     @dealer = Dealer.new(deck)
@@ -280,10 +297,16 @@ class Game
   def gambler_turn
     loop do
       display_cards
-      break if gambler.busted? || gambler.want_to_stay
+      break if gambler.busted? || gambler.stayed?
       gambler.play
+      sleep SLEEPING_TIME
       clear
     end
+    display_post_gambler_turn_message
+  end
+
+  def dealer_can_play?
+    gambler.exit_strategy == :stayed
   end
 end
 
