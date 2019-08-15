@@ -3,7 +3,7 @@ module Tools
   LINE_BREAK    = '-' * MAX_SIZE
   SMALL_BREAK   = '-' * 15
   SLEEPING_TIME = 1
-  MAX_SCORE     = 21 # not sure this should be here
+  MAX_SCORE     = 21
 
   def wrap_sentence(str, max_size = MAX_SIZE)
     words = str.split
@@ -260,6 +260,7 @@ class Table
   end
 
   def display_cards_and_scores
+    display_points
     print_center("Your hand:")
     print_center(gambler.hand.join(' - '))
     puts ''
@@ -269,6 +270,15 @@ class Table
     print_center(dealer.public_hand)
     puts ''
     print_center("Score: #{dealer.score}")
+  end
+
+  def display_points
+    print_center(LINE_BREAK)
+    print_center("NUMBER OF ROUNDS WON")
+    print_center("#{gambler.name}: #{gambler.victory_points}")
+    print_center("#{dealer.name}: #{dealer.victory_points}")
+    print_center(LINE_BREAK)
+    puts ''
   end
 end
 
@@ -289,8 +299,6 @@ class Game
       deal_cards
       players_turn
       show_result
-      # puts gambler.victory_points
-      # puts dealer.victory_points
       break unless play_again?
       reset_game
     end
