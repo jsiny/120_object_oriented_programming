@@ -62,9 +62,10 @@ class Player
   def score
     @score = 0
     hand.each do |card|
-      @score += if numeric_string?(card[0])
-                  card[0].to_i
-                elsif Deck::HEADS.include?(card[0])
+      card_value = card.split.first
+      @score += if numeric_string?(card_value)
+                  card_value.to_i
+                elsif Deck::HEADS.include?(card_value)
                   10
                 else
                   11
@@ -160,6 +161,12 @@ class Dealer < Player
     else
       super
     end
+  end
+
+  def play
+    puts ''
+    puts "It's now the dealer's turn!"
+    super
   end
 
   def choose_action
@@ -265,16 +272,6 @@ class Game
     BLOCK
   end
 
-  def display_post_gambler_turn_message
-    case gambler.exit_strategy
-    when :busted
-      puts 'You busted! The dealer wins'
-      # method to exit the game
-    when :stayed
-      puts "It's now the dealer's turn..."
-    end
-  end
-
   def setup_game
     @deck = Deck.new
     @dealer = Dealer.new(deck)
@@ -292,7 +289,6 @@ class Game
 
   def players_turn
     gambler.turn(table)
-    display_post_gambler_turn_message
     return unless dealer_can_play?
     dealer.reveal_hand
     dealer.turn(table)
@@ -300,6 +296,16 @@ class Game
 
   def dealer_can_play?
     gambler.exit_strategy == :stayed
+  end
+
+  def show_result
+    if gambler.exit_strategy == :busted
+      puts "You busted, the dealer wins"
+    elsif dealer.exit_strategy == :busted
+      puts "The dealer busted, you won!"
+    else
+      puts "We need to compare the scores"
+    end
   end
 end
 
