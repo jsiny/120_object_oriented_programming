@@ -1,30 +1,18 @@
+# Further Exploration
+
 class CircularQueue
-  attr_accessor :buffer, :next_idx, :oldest_idx
-
   def initialize(size)
-    @buffer = [nil] * size
-    @next_idx = 0
-    @oldest_idx = 0
-  end
-
-  def dequeue
-    old_value = buffer[oldest_idx]
-    buffer[oldest_idx] = nil
-    self.oldest_idx = increment(oldest_idx) unless old_value.nil?
-    old_value
+    @buffer = []
+    @size = size
   end
 
   def enqueue(value)
-    old_value = buffer[next_idx]
-    buffer[next_idx] = value
-    self.next_idx = increment(next_idx)
-    self.oldest_idx = increment(oldest_idx) unless old_value.nil?
+    dequeue if @buffer.size == @size
+    @buffer.unshift(value)
   end
 
-  private
-
-  def increment(position)
-    (position + 1) % buffer.size
+  def dequeue
+    @buffer.pop
   end
 end
 
