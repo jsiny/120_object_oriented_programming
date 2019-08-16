@@ -5,3 +5,4 @@
 * [ ] Ex 6.7 (Pet Shelter) with **Further Exploration** - First done: 01/08/19
 * [ ] Ex 6.9 (Moving) - First done: 01/08/19
 * [ ] Ex 6.10 (Nobility) with **Further Exploration** - First done: 01/08/19
+* [ ] Ex 7.5 (Stack Machine Interpretation) with **Further Exploration** - First done: 16/08/19
