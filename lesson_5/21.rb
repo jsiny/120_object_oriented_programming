@@ -1,9 +1,12 @@
-module Tools
+module GameTools
+  SLEEPING_TIME = 1
+  MAX_SCORE     = 21
+end
+
+module SyntaxTools
   MAX_SIZE      = 40
   LINE_BREAK    = '-' * MAX_SIZE
   SMALL_BREAK   = '-' * 15
-  SLEEPING_TIME = 1
-  MAX_SCORE     = 21
 
   def wrap_sentence(str, max_size = MAX_SIZE)
     words = str.split
@@ -38,7 +41,8 @@ module Tools
 end
 
 class Player
-  include Tools
+  include GameTools
+  include SyntaxTools
 
   attr_accessor :hand
   attr_reader :exit_strategy, :name, :victory_points, :deck
@@ -258,7 +262,7 @@ class Deck
 end
 
 class Table
-  include Tools
+  include SyntaxTools
 
   attr_reader :dealer, :gambler
 
@@ -294,7 +298,7 @@ class Table
 end
 
 class Game
-  include Tools
+  include SyntaxTools
 
   attr_reader :deck, :gambler, :dealer, :table
 
@@ -335,8 +339,8 @@ class Game
       #{LINE_BREAK}
       Each card has a value: numbers are worth their face value, figures are
       worth 10 points, and an ace can be worth 1 or 11.
-      Your goal: to get as close as possible to #{MAX_SCORE}, without going
-      overboard!
+      Your goal: to get as close as possible to #{GameTools::MAX_SCORE},
+      without going overboard!
       #{LINE_BREAK}
     BLOCK
   end
@@ -465,7 +469,7 @@ class Game
   def play_again?
     return unless gambler.choose_to_play_again?
     puts "And here we go again!"
-    sleep SLEEPING_TIME
+    sleep GameTools::SLEEPING_TIME
     clear
     true
   end
