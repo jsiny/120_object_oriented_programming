@@ -3,6 +3,7 @@ class Card
   attr_reader :rank, :suit
 
   VALUES = { 'Jack' => 11, 'Queen' => 12, 'King' => 13, 'Ace' => 14 }
+  SUITS  = { 'Diamonds' => 1, 'Clubs' => 2, 'Hearts' => 3, 'Spades' => 4 }
 
   def initialize(rank, suit)
     @rank = rank
@@ -13,12 +14,18 @@ class Card
     "#{rank} of #{suit}"
   end
 
-  def value
+  def rank_value
     VALUES.fetch(rank, rank)
   end
 
+  def suit_value
+    SUITS[suit]
+  end
+
   def <=>(other_card)
-    value <=> other_card.value
+    comparison = rank_value <=> other_card.rank_value
+    return comparison unless comparison.zero?
+    suit_value <=> other_card.suit_value
   end
 end
 
@@ -43,10 +50,10 @@ cards = [Card.new(7, 'Diamonds'),
          Card.new('Jack', 'Diamonds'),
          Card.new('Jack', 'Spades')]
 puts cards.min == Card.new(7, 'Diamonds')
-puts cards.max.rank == 'Jack'
+puts cards.max == Card.new('Jack', 'Spades')
 
 cards = [Card.new(8, 'Diamonds'),
          Card.new(8, 'Clubs'),
          Card.new(8, 'Spades')]
-puts cards.min.rank == 8
-puts cards.max.rank == 8
+puts cards.min == Card.new(8, 'Diamonds')
+puts cards.max == Card.new(8, 'Spades')
