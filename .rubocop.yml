@@ -1,4 +1,7 @@
 # .rubocop.yml for non-RB101 courses (3 Jan 2019)
+# Version for newer versions of rubocop, including the rubocop performance gem
+
+require: rubocop-performance
 
 AllCops:
   # Display cop names
