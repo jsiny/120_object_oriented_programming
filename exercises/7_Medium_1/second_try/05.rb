@@ -1,15 +1,13 @@
-require 'pry'
-
 class MinilangError   < StandardError; end
 class EmptyStackError < MinilangError; end
 class BadTokenError   < MinilangError; end
 
 class Minilang
-  OPERATIONS = { mult:  :*,
-                 add:   :+,
-                 div:   :/,
-                 mod:   :%,
-                 sub:   :- }
+  OPERATIONS = { mult: :*,
+                 add: :+,
+                 div: :/,
+                 mod: :%,
+                 sub: :- }
 
   ACTIONS = [:pop, :push, :print]
 
@@ -23,6 +21,8 @@ class Minilang
     @program.split(' ').each do |el|
       integer?(el) ? @register = el.to_i : execute(el.downcase.to_sym)
     end
+  rescue MinilangError => e
+    puts e.message
   end
 
   private
@@ -32,15 +32,15 @@ class Minilang
   end
 
   def execute(order)
-    if OPERATIONS.keys.include?(order)
-      @register = @register.send(OPERATIONS[order], @stack.pop)
+    if OPERATIONS.key?(order)
+      @register = @register.send(OPERATIONS[order], pop)
     elsif ACTIONS.include?(order)
       send(order)
     else
-      raise BadTokenError, "Invalid token"
+      raise BadTokenError, "Invalid token: #{order.to_s.upcase}"
     end
   end
-  
+
   def print
     puts @register
   end
@@ -50,6 +50,9 @@ class Minilang
   end
 
   def pop
+    # rubocop:disable Layout/EmptyLineAfterGuardClause
+    raise EmptyStackError, "Empty stack!" if @stack.empty?
+    # rubocop:enable Layout/EmptyLineAfterGuardClause
     @register = @stack.pop
   end
 end
@@ -69,7 +72,7 @@ Minilang.new('5 PUSH 10 PRINT POP PRINT').eval
 # 10
 # 5
 
-# Minilang.new('5 PUSH POP POP PRINT').eval
+Minilang.new('5 PUSH POP POP PRINT').eval
 # Empty stack!
 
 Minilang.new('3 PUSH PUSH 7 DIV MULT PRINT ').eval
@@ -84,5 +87,5 @@ Minilang.new('-3 PUSH 5 XSUB PRINT').eval
 Minilang.new('-3 PUSH 5 SUB PRINT').eval
 # 8
 
-# Minilang.new('6 PUSH').eval
+Minilang.new('6 PUSH').eval
 # (nothing printed; no PRINT commands)
